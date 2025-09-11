@@ -1,54 +1,20 @@
-HELP.md
-.gradle
-build/
-!gradle/wrapper/gradle-wrapper.jar
-!**/src/main/**/build/
-!**/src/test/**/build/
-
-### STS ###
-.apt_generated
-.classpath
-.factorypath
-.project
-.settings
-.springBeans
-.sts4-cache
-bin/
-!**/src/main/**/bin/
-!**/src/test/**/bin/
-
-### IntelliJ IDEA ###
-.idea
-*.iws
-*.iml
-*.ipr
-out/
-!**/src/main/**/out/
-!**/src/test/**/out/
-
-### NetBeans ###
-/nbproject/private/
-/nbbuild/
-/dist/
-/nbdist/
-/.nb-gradle/
-
-### VS Code ###
-.vscode/
-
-
-# OS / logs
+# === root .gitignore ===
 .DS_Store
 *.log
 
-# env & secrets
-.env
-*.env
-*.pem
-*.p12
-*.jks
-*.keystore
+# IDE
+.idea/
+*.iml
+out/
 
-# Spring local config
-src/main/resources/application.yml
-src/main/resources/application.properties
+# node (만약 RN나 웹 프론트면)
+node_modules/
+
+# 안드로이드(프론트가 Android Studio라면)
+frontend/.gradle/
+frontend/build/
+frontend/app/build/
+
+# 백엔드(이미 backend 폴더 안에도 개별 .gitignore 두면 더 안전)
+backend/.gradle/
+backend/build/
