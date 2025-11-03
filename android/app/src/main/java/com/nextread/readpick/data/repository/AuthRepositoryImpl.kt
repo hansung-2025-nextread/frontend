@@ -1,0 +1,84 @@
+package com.nextread.readpick.data.repository
+
+import com.nextread.readpick.data.local.TokenManager
+import com.nextread.readpick.data.model.auth.LoginRequest
+import com.nextread.readpick.data.remote.api.AuthApi
+import com.nextread.readpick.domain.repository.AuthRepository
+import javax.inject.Inject
+import javax.inject.Singleton
+
+/**
+ * 인증 Repository 구현체
+ *
+ * AuthApi와 TokenManager를 사용하여 인증 처리
+ */
+@Singleton
+class AuthRepositoryImpl @Inject constructor(
+    private val authApi: AuthApi,
+    private val tokenManager: TokenManager
+) : AuthRepository {
+
+    /**
+     * Google 로그인
+     *
+     * 1. Google ID Token을 백엔드로 전송
+     * 2. 백엔드에서 JWT 토큰 받기
+     * 3. JWT 토큰과 사용자 정보를 TokenManager에 저장
+     *
+     * @param idToken Google ID Token
+     * @return Result<Unit> 성공/실패
+     */
+    override suspend fun loginWithGoogle(idToken: String): Result<Unit> {
+        return try {
+            android.util.Log.d("AuthRepository", "📡 Calling backend API /v1/api/auth/google")
+
+            // 1. 백엔드 API 호출
+            val request = LoginRequest(idToken = idToken)
+            android.util.Log.d("AuthRepository", "Request: idToken=${idToken.take(50)}...")
+
+            val apiResponse = authApi.login("google", request)
+            android.util.Log.d("AuthRepository", "API Response: success=${apiResponse.success}, data=${apiResponse.data}")
+
+            // 2. 응답 검증
+            if (!apiResponse.success || apiResponse.data == null) {
+                val errorMsg = apiResponse.message ?: "Unknown error"
+                android.util.Log.e("AuthRepository", "❌ API failed: $errorMsg")
+                return Result.failure(Exception(errorMsg))
+            }
+
+            val loginData = apiResponse.data
+            android.util.Log.d("AuthRepository", "✅ Login data: accessToken=${loginData.accessToken.take(20)}..., email=${loginData.email}")
+
+            // 3. JWT 토큰 저장
+            tokenManager.saveToken(loginData.accessToken)
+            android.util.Log.d("AuthRepository", "💾 JWT token saved")
+
+            // 4. 사용자 정보 저장
+            tokenManager.saveUserInfo(
+                email = loginData.email,
+                name = loginData.name,
+                picture = loginData.picture
+            )
+            android.util.Log.d("AuthRepository", "💾 User info saved: ${loginData.name}, ${loginData.email}")
+
+            Result.success(Unit)
+        } catch (e: Exception) {
+            android.util.Log.e("AuthRepository", "❌ Login failed", e)
+            Result.failure(e)
+        }
+    }
+
+    /**
+     * 로그아웃
+     *
+     * TokenManager의 모든 데이터 삭제
+     */
+    override suspend fun logout(): Result<Unit> {
+        return try {
+            tokenManager.clear()
+            Result.success(Unit)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+}
