@@ -1,20 +1,6 @@
-# === root .gitignore ===
-.DS_Store
-*.log
+# Backend 폴더 무시 (별도 레포)
+backend/
+nextread-docs/
 
-# IDE
-.idea/
-*.iml
-out/
-
-# node (만약 RN나 웹 프론트면)
-node_modules/
-
-# 안드로이드(프론트가 Android Studio라면)
-frontend/.gradle/
-frontend/build/
-frontend/app/build/
-
-# 백엔드(이미 backend 폴더 안에도 개별 .gitignore 두면 더 안전)
-backend/.gradle/
-backend/build/
+# Android는 포함
+!android/
