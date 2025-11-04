@@ -4,11 +4,29 @@ AI 기반 도서 추천 서비스 Android 앱
 
 ## 🚀 시작하기
 
+### 0. 사전 요구사항
+
+**필수 소프트웨어:**
+- ✅ **Java 17 이상** (JDK 17+)
+- ✅ **Android Studio** (최신 버전 권장)
+
+**Java 17 설치 확인:**
+```bash
+java -version
+# 출력: java version "17.0.x" 이상이어야 함
+```
+
+**Java 17 설치 방법:**
+- **macOS**: `brew install openjdk@17`
+- **Windows/Linux**: [Amazon Corretto 17](https://docs.aws.amazon.com/corretto/latest/corretto-17-ug/downloads-list.html) 다운로드
+
+---
+
 ### 1. 프로젝트 Clone
 
 ```bash
-git clone <repository-url>
-cd readpick/android
+git clone https://github.com/hansung-2025-nextread/frontend.git
+cd frontend/android
 ```
 
 ### 2. Firebase 설정
