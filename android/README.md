@@ -2,6 +2,20 @@
 
 AI 기반 도서 추천 서비스 Android 앱
 
+---
+
+## 📚 문서 가이드
+
+### 👥 팀원용 (처음 시작하는 분)
+- **[QUICKSTART.md](./QUICKSTART.md)** ⚡ - 5분 안에 개발 시작 (먼저 읽기!)
+- **[TEAM_GUIDE.md](./TEAM_GUIDE.md)** 📖 - 상세한 개발 가이드 (필독!)
+- **[TEAM_ROLES.md](./TEAM_ROLES.md)** 👥 - 역할 분담 및 작업 일정
+
+### 🔧 기술 문서
+- **[CLAUDE.md](./CLAUDE.md)** 🏗️ - 전체 아키텍처 및 기술 스택
+
+---
+
 ## 🚀 시작하기
 
 ### 0. 사전 요구사항
