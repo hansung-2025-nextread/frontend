@@ -36,9 +36,13 @@ sealed interface LoginUiState {
      * 로그인 성공
      *
      * JWT 토큰이 저장되고 로그인 완료
-     * UI: 홈 화면으로 이동
+     * UI: 온보딩 필요 여부에 따라 Onboarding 또는 Home 화면으로 이동
+     *
+     * @param needsOnboarding 온보딩 필요 여부
+     *        - true: 온보딩 화면으로 이동
+     *        - false: 홈 화면으로 이동
      */
-    data object Success : LoginUiState
+    data class Success(val needsOnboarding: Boolean) : LoginUiState
 
     /**
      * 로그인 실패

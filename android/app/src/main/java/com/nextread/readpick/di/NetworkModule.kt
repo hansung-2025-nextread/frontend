@@ -117,7 +117,21 @@ object NetworkModule {
         return retrofit.create(com.nextread.readpick.data.remote.api.AuthApi::class.java)
     }
 
-    // TODO: 다른 API 인터페이스도 여기에 추가
+    /**
+     * OnboardingApi 제공
+     *
+     * 온보딩 관련 API 인터페이스
+     * - 온보딩 상태 확인
+     * - 카테고리 목록 조회
+     * - 카테고리 선택 제출
+     */
+    @Provides
+    @Singleton
+    fun provideOnboardingApi(retrofit: Retrofit): com.nextread.readpick.data.remote.api.OnboardingApi {
+        return retrofit.create(com.nextread.readpick.data.remote.api.OnboardingApi::class.java)
+    }
+
+    // TODO: 팀원들이 다른 API 인터페이스를 여기에 추가
     // @Provides
     // @Singleton
     // fun provideBookApi(retrofit: Retrofit): BookApi {

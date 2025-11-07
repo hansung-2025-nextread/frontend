@@ -1,18 +1,12 @@
 package com.nextread.readpick.presentation.auth.login
 
-import android.app.Activity
 import android.util.Log
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -24,8 +18,6 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.google.android.libraries.identity.googleid.GetGoogleIdOption
 import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential
 import kotlinx.coroutines.launch
-import java.security.MessageDigest
-import java.util.UUID
 
 /**
  * 로그인 화면
@@ -37,16 +29,25 @@ import java.util.UUID
  * - ViewModel: LoginViewModel (상태 관리 및 로그인 로직)
  * - Repository: AuthRepository (API 호출)
  *
- * 사용 예시 (MainActivity):
+ * 사용 예시 (NavGraph):
  * ```kotlin
  * LoginScreen(
- *     onLoginSuccess = { /* 홈 화면으로 이동 */ }
+ *     onLoginSuccess = { needsOnboarding ->
+ *         if (needsOnboarding) {
+ *             // 온보딩 화면으로 이동
+ *         } else {
+ *             // 홈 화면으로 이동
+ *         }
+ *     }
  * )
  * ```
+ *
+ * @param onLoginSuccess 로그인 성공 시 실행할 콜백
+ *                       - needsOnboarding: 온보딩 필요 여부 (true=온보딩 필요, false=홈으로 이동)
  */
 @Composable
 fun LoginScreen(
-    onLoginSuccess: () -> Unit,
+    onLoginSuccess: (needsOnboarding: Boolean) -> Unit,
     viewModel: LoginViewModel = hiltViewModel()
 ) {
     val context = LocalContext.current
@@ -59,7 +60,8 @@ fun LoginScreen(
     // 로그인 성공 시 화면 전환
     LaunchedEffect(uiState) {
         if (uiState is LoginUiState.Success) {
-            onLoginSuccess()
+            val needsOnboarding = (uiState as LoginUiState.Success).needsOnboarding
+            onLoginSuccess(needsOnboarding)
         }
     }
 
