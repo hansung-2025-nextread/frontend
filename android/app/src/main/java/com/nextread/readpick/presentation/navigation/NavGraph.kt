@@ -12,29 +12,35 @@ import androidx.navigation.compose.composable
 import com.nextread.readpick.presentation.auth.login.LoginScreen
 import com.nextread.readpick.presentation.onboarding.OnboardingScreen
 
+// --------------------------------------------------------
+// 🚨 1. 우리가 만든 실제 HomeScreen을 import 합니다.
+// --------------------------------------------------------
+import com.nextread.readpick.presentation.home.HomeScreen
+
 /**
  * ReadPick 앱의 전체 Navigation Graph
  *
  * @param navController 화면 전환을 관리하는 NavController
- * @param startDestination 앱 시작 시 표시할 화면 (기본값: Login)
+ * @param startDestination 앱 시작 시 표시할 화면
  */
 @Composable
 fun ReadPickNavGraph(
     navController: NavHostController,
+    // --------------------------------------------------------
+    // 🚨 2. 테스트를 위해 시작 화면을 Home으로 변경합니다.
+    // --------------------------------------------------------
     startDestination: String = Screen.Login.route
 ) {
     NavHost(
         navController = navController,
-        startDestination = startDestination
+        startDestination = startDestination // 👈 'Home'이 시작점이 됩니다.
     ) {
         // 로그인 화면
         composable(Screen.Login.route) {
             LoginScreen(
                 onLoginSuccess = { needsOnboarding ->
-                    // 로그인 성공 후 온보딩 필요 여부에 따라 화면 전환
                     if (needsOnboarding) {
                         navController.navigate(Screen.Onboarding.route) {
-                            // 로그인 화면을 백스택에서 제거 (뒤로가기 방지)
                             popUpTo(Screen.Login.route) { inclusive = true }
                         }
                     } else {
@@ -50,19 +56,38 @@ fun ReadPickNavGraph(
         composable(Screen.Onboarding.route) {
             OnboardingScreen(
                 onOnboardingComplete = {
-                    // 온보딩 완료 후 홈으로 이동
                     navController.navigate(Screen.Home.route) {
-                        // 온보딩 화면을 백스택에서 제거 (뒤로가기 방지)
                         popUpTo(Screen.Onboarding.route) { inclusive = true }
                     }
                 }
             )
         }
 
-        // 홈 화면 (임시 Placeholder)
+        // --------------------------------------------------------
+        // 🚨 3. 홈 화면 (Placeholder를 실제 HomeScreen으로 교체)
+        // --------------------------------------------------------
         composable(Screen.Home.route) {
-            // TODO: 실제 HomeScreen 구현 (팀원1)
-            HomeScreenPlaceholder()
+            HomeScreen(
+                onMenuClick = { /* TODO: 네비게이션 드로어 열기 */ },
+
+                // (이하 버튼들은 Screen.kt에 경로 추가 후 연결 필요)
+                onSearchClick = {
+                    // TODO: (팀원1) Screen.Search 추가 후 연결
+                },
+                onChatbotClick = {
+                    // TODO: (팀원2) Screen.Chatbot 추가 후 연결
+                },
+                onMyLibraryClick = {
+                    // TODO: (팀원3) Screen.Collection 추가 후 연결
+                },
+                onMyPageClick = {
+                    // TODO: (팀원3) Screen.MyPage 추가 후 연결
+                },
+                onBookClick = { isbn13 ->
+                    // HomeScreen에서 전달받은 isbn13을 사용
+                    navController.navigate(Screen.BookDetail.createRoute(isbn13))
+                }
+            )
         }
 
         // TODO: 팀원들이 아래에 각자 화면 추가
@@ -70,19 +95,5 @@ fun ReadPickNavGraph(
         // composable(Screen.BookDetail.route) { BookDetailScreen(...) }
         // composable(Screen.Search.route) { SearchScreen(...) }
         // composable(Screen.Chatbot.route) { ChatbotScreen(...) }
-    }
-}
-
-/**
- * 임시 홈 화면 Placeholder
- * 팀원1이 실제 HomeScreen 구현 시 이 함수를 대체할 예정
- */
-@Composable
-private fun HomeScreenPlaceholder() {
-    Box(
-        modifier = Modifier.fillMaxSize(),
-        contentAlignment = Alignment.Center
-    ) {
-        Text(text = "홈 화면 (온보딩 완료!)\n\nTODO: 팀원1이 실제 HomeScreen 구현 예정")
     }
 }
