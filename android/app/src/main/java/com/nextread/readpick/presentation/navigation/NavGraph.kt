@@ -10,6 +10,7 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import com.nextread.readpick.presentation.auth.login.LoginScreen
+import com.nextread.readpick.presentation.chatbot.ChatBotScreen
 import com.nextread.readpick.presentation.onboarding.OnboardingScreen
 
 /**
@@ -63,6 +64,10 @@ fun ReadPickNavGraph(
         composable(Screen.Home.route) {
             // TODO: 실제 HomeScreen 구현 (팀원1)
             HomeScreenPlaceholder()
+        }
+
+        composable(Screen.Chatbot.route){
+            ChatbotScreen()
         }
 
         // TODO: 팀원들이 아래에 각자 화면 추가
