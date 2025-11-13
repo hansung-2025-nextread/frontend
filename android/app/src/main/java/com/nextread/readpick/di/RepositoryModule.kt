@@ -1,7 +1,9 @@
 package com.nextread.readpick.di
 
 import com.nextread.readpick.data.repository.AuthRepositoryImpl
+import com.nextread.readpick.data.repository.OnboardingRepositoryImpl
 import com.nextread.readpick.domain.repository.AuthRepository
+import com.nextread.readpick.domain.repository.OnboardingRepository
 import dagger.Binds
 import dagger.Module
 import dagger.hilt.InstallIn
@@ -40,4 +42,16 @@ abstract class RepositoryModule {
     abstract fun bindAuthRepository(
         authRepositoryImpl: AuthRepositoryImpl
     ): AuthRepository
+
+    /**
+     * OnboardingRepository 바인딩
+     *
+     * OnboardingRepository 인터페이스를 요청하면
+     * OnboardingRepositoryImpl 구현체를 제공
+     */
+    @Binds
+    @Singleton
+    abstract fun bindOnboardingRepository(
+        onboardingRepositoryImpl: OnboardingRepositoryImpl
+    ): OnboardingRepository
 }
