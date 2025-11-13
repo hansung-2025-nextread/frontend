@@ -1,6 +1,7 @@
 package com.nextread.readpick.di
 
 import com.jakewharton.retrofit2.converter.kotlinx.serialization.asConverterFactory
+import com.nextread.readpick.data.remote.api.BookApi
 import com.nextread.readpick.data.remote.interceptor.AuthInterceptor
 import com.nextread.readpick.data.remote.interceptor.LoggingInterceptorProvider
 import dagger.Module
@@ -131,10 +132,12 @@ object NetworkModule {
         return retrofit.create(com.nextread.readpick.data.remote.api.OnboardingApi::class.java)
     }
 
-    // TODO: 팀원들이 다른 API 인터페이스를 여기에 추가
-    // @Provides
-    // @Singleton
-    // fun provideBookApi(retrofit: Retrofit): BookApi {
-    //     return retrofit.create(BookApi::class.java)
-    // }
+    /**
+     * BookApi 제공 - 추가!
+     */
+    @Provides
+    @Singleton
+    fun provideBookApi(retrofit: Retrofit): BookApi {
+        return retrofit.create(BookApi::class.java)
+    }
 }
