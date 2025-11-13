@@ -28,7 +28,7 @@ sealed class Screen(val route: String) {
     data object Search : Screen("search")
 
     // TODO: 팀원들이 추가할 화면들
-    // data object Chatbot : Screen("chatbot") - 팀원2
+    data object Chatbot : Screen("chatbot")
     // data object Review : Screen("review") - 팀원2
     // data object MyPage : Screen("mypage") - 팀원3
     // data object Collection : Screen("collection") - 팀원3
