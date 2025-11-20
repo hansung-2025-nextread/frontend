@@ -1,8 +1,10 @@
 package com.nextread.readpick.di
 
+import com.nextread.readpick.data.repository.AdminRepositoryImpl
 import com.nextread.readpick.data.repository.AuthRepositoryImpl
 import com.nextread.readpick.data.repository.BookRepositoryImpl
 import com.nextread.readpick.data.repository.OnboardingRepositoryImpl
+import com.nextread.readpick.domain.repository.AdminRepository
 import com.nextread.readpick.domain.repository.AuthRepository
 import com.nextread.readpick.domain.repository.BookRepository
 import com.nextread.readpick.domain.repository.OnboardingRepository
@@ -65,4 +67,16 @@ abstract class RepositoryModule {
     abstract fun bindBookRepository(
         bookRepositoryImpl: BookRepositoryImpl
     ): BookRepository
+
+    /**
+     * AdminRepository 바인딩
+     *
+     * AdminRepository 인터페이스를 요청하면
+     * AdminRepositoryImpl 구현체를 제공
+     */
+    @Binds
+    @Singleton
+    abstract fun bindAdminRepository(
+        adminRepositoryImpl: AdminRepositoryImpl
+    ): AdminRepository
 }

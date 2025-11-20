@@ -61,6 +61,10 @@ class AuthRepositoryImpl @Inject constructor(
             )
             android.util.Log.d("AuthRepository", "💾 User info saved: ${loginData.name}, ${loginData.email}")
 
+            // 5. 사용자 역할 저장
+            tokenManager.saveUserRole(loginData.role)
+            android.util.Log.d("AuthRepository", "💾 User role saved: ${loginData.role}")
+
             Result.success(Unit)
         } catch (e: Exception) {
             android.util.Log.e("AuthRepository", "❌ Login failed", e)

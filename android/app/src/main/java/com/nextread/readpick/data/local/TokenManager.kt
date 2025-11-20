@@ -54,6 +54,7 @@ class TokenManager @Inject constructor(
         private val USER_EMAIL_KEY = stringPreferencesKey("user_email")
         private val USER_NAME_KEY = stringPreferencesKey("user_name")
         private val USER_PICTURE_KEY = stringPreferencesKey("user_picture")
+        private val USER_ROLE_KEY = stringPreferencesKey("user_role")
     }
 
     /**
@@ -167,6 +168,48 @@ class TokenManager @Inject constructor(
         return context.dataStore.data.map { preferences ->
             preferences[USER_PICTURE_KEY]
         }
+    }
+
+    /**
+     * 사용자 역할 저장
+     *
+     * @param role 사용자 역할 (USER 또는 ADMIN)
+     */
+    suspend fun saveUserRole(role: String) {
+        context.dataStore.edit { preferences ->
+            preferences[USER_ROLE_KEY] = role
+        }
+    }
+
+    /**
+     * 사용자 역할 조회 (동기)
+     *
+     * @return 사용자 역할 또는 null
+     */
+    fun getUserRole(): String? {
+        return runBlocking {
+            context.dataStore.data.first()[USER_ROLE_KEY]
+        }
+    }
+
+    /**
+     * 사용자 역할 조회 (비동기 Flow)
+     *
+     * @return 사용자 역할 Flow
+     */
+    fun getUserRoleFlow(): Flow<String?> {
+        return context.dataStore.data.map { preferences ->
+            preferences[USER_ROLE_KEY]
+        }
+    }
+
+    /**
+     * 관리자 여부 확인
+     *
+     * @return ADMIN이면 true (대소문자 무시)
+     */
+    fun isAdmin(): Boolean {
+        return getUserRole()?.equals("ADMIN", ignoreCase = true) == true
     }
 
     /**
