@@ -2,6 +2,8 @@ package com.nextread.readpick.data.repository
 
 import android.util.Log
 import com.nextread.readpick.data.model.book.BookDto
+import com.nextread.readpick.data.model.search.SearchBookDto
+import com.nextread.readpick.data.model.search.SearchRequest
 import com.nextread.readpick.data.remote.api.BookApi
 import com.nextread.readpick.domain.repository.BookRepository
 import javax.inject.Inject
@@ -11,26 +13,27 @@ class BookRepositoryImpl @Inject constructor(
 ) : BookRepository {
 
     /**
-     * 🚨 categoryId: Int? 파라미터 추가
+     * 베스트셀러 목록 조회
+     * (서버 응답: data 자체가 List<BookDto>임)
      */
     override suspend fun getBestsellers(categoryId: Int?): Result<List<BookDto>> = runCatching {
-        Log.d(TAG, "베스트셀러 조회 API 호출 (CategoryID: $categoryId)")
+        // Log.d(TAG, "베스트셀러 조회 API 호출 (CategoryID: $categoryId)") // 필요 시 주석 해제
 
-        // 🚨 categoryId 파라미터 전달
         val response = bookApi.getBestsellers(category = categoryId)
 
         if (response.success && response.data != null) {
-            // 🚨 [수정] response.data가 List<BookDto> 그 자체입니다.
-            Log.d(TAG, "베스트셀러 ${response.data.size}개 조회 성공")
-            response.data // 👈 .books 제거
+            // 🚨 [확인됨] response.data가 이미 List이므로 바로 반환
+            response.data
         } else {
-            Log.e(TAG, "베스트셀러 조회 실패: ${response.message}")
             throw Exception(response.message ?: "베스트셀러를 불러올 수 없습니다")
         }
     }.onFailure { exception ->
         Log.e(TAG, "베스트셀러 조회 에러", exception)
     }
 
+    /**
+     * 도서 상세 조회
+     */
     override suspend fun getBookDetail(isbn13: String): Result<BookDto> = runCatching {
         Log.d(TAG, "도서 상세 조회 API 호출: $isbn13")
 
@@ -46,6 +49,30 @@ class BookRepositoryImpl @Inject constructor(
         Log.e(TAG, "도서 상세 조회 에러", exception)
     }
 
+    /**
+     * 도서 검색
+     * (서버 응답: data 객체 안에 books 리스트가 있음)
+     */
+    override suspend fun searchBooks(keyword: String): Result<List<SearchBookDto>> = runCatching {
+        Log.d(TAG, "도서 검색 API 호출: $keyword")
+
+        // 🚨 [수정] 검색어를 Request 객체로 감싸서 전달
+        val request = SearchRequest(query = keyword)
+        val response = bookApi.searchBooks(request)
+
+        if (response.success && response.data != null) {
+            Log.d(TAG, "검색 결과: ${response.data.books.size}건")
+            response.data.books
+        } else {
+            throw Exception(response.message ?: "검색 결과가 없습니다.")
+        }
+    }.onFailure { exception ->
+        Log.e(TAG, "도서 검색 에러", exception)
+    }
+
+    /**
+     * 내 서재에 책 저장
+     */
     override suspend fun saveBook(isbn13: String): Result<Unit> = runCatching {
         Log.d(TAG, "책 저장 API 호출: $isbn13")
 

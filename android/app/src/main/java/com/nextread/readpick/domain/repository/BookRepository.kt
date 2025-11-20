@@ -2,6 +2,7 @@ package com.nextread.readpick.domain.repository
 
 import com.nextread.readpick.data.model.book.BookDto
 import com.nextread.readpick.data.model.common.ApiResponse
+import com.nextread.readpick.data.model.search.SearchBookDto
 
 interface BookRepository {
 
@@ -20,4 +21,7 @@ interface BookRepository {
      * 내 서재에 저장
      */
     suspend fun saveBook(isbn13: String): Result<Unit>
+
+    // 반환 타입을 List<SearchBookDto>로 설정
+    suspend fun searchBooks(keyword: String): Result<List<SearchBookDto>>
 }

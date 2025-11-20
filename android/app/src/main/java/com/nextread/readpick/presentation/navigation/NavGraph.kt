@@ -10,32 +10,25 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import com.nextread.readpick.presentation.auth.login.LoginScreen
+import com.nextread.readpick.presentation.home.HomeScreen
 import com.nextread.readpick.presentation.onboarding.OnboardingScreen
 
-// --------------------------------------------------------
-// 🚨 1. 우리가 만든 실제 HomeScreen을 import 합니다.
-// --------------------------------------------------------
-import com.nextread.readpick.presentation.home.HomeScreen
+// 🚨 [추가] SearchScreen import
+import com.nextread.readpick.presentation.search.SearchScreen
 
 /**
  * ReadPick 앱의 전체 Navigation Graph
- *
- * @param navController 화면 전환을 관리하는 NavController
- * @param startDestination 앱 시작 시 표시할 화면
  */
 @Composable
 fun ReadPickNavGraph(
     navController: NavHostController,
-    // --------------------------------------------------------
-    // 🚨 2. 테스트를 위해 시작 화면을 Home으로 변경합니다.
-    // --------------------------------------------------------
     startDestination: String = Screen.Login.route
 ) {
     NavHost(
         navController = navController,
-        startDestination = startDestination // 👈 'Home'이 시작점이 됩니다.
+        startDestination = startDestination
     ) {
-        // 로그인 화면
+        // 1. 로그인 화면
         composable(Screen.Login.route) {
             LoginScreen(
                 onLoginSuccess = { needsOnboarding ->
@@ -52,7 +45,7 @@ fun ReadPickNavGraph(
             )
         }
 
-        // 온보딩 화면
+        // 2. 온보딩 화면
         composable(Screen.Onboarding.route) {
             OnboardingScreen(
                 onOnboardingComplete = {
@@ -63,37 +56,92 @@ fun ReadPickNavGraph(
             )
         }
 
-        // --------------------------------------------------------
-        // 🚨 3. 홈 화면 (Placeholder를 실제 HomeScreen으로 교체)
-        // --------------------------------------------------------
+        // 3. 홈 화면
         composable(Screen.Home.route) {
             HomeScreen(
                 onMenuClick = { /* TODO: 네비게이션 드로어 열기 */ },
 
-                // (이하 버튼들은 Screen.kt에 경로 추가 후 연결 필요)
+                // 🚨 [연결] 검색 화면으로 이동
                 onSearchClick = {
-                    // TODO: (팀원1) Screen.Search 추가 후 연결
+                    navController.navigate(Screen.Search.route)
                 },
+                // 🚨 [연결] 챗봇 화면으로 이동 (Placeholder)
                 onChatbotClick = {
-                    // TODO: (팀원2) Screen.Chatbot 추가 후 연결
+                    navController.navigate(Screen.Chatbot.route)
                 },
+                // 🚨 [연결] 내 서재 화면으로 이동 (Placeholder)
                 onMyLibraryClick = {
-                    // TODO: (팀원3) Screen.Collection 추가 후 연결
+                    navController.navigate(Screen.MyLibrary.route)
                 },
+                // 🚨 [연결] 마이페이지 화면으로 이동 (Placeholder)
                 onMyPageClick = {
-                    // TODO: (팀원3) Screen.MyPage 추가 후 연결
+                    navController.navigate(Screen.MyPage.route)
                 },
+                // 🚨 [연결] 책 상세 화면으로 이동
                 onBookClick = { isbn13 ->
-                    // HomeScreen에서 전달받은 isbn13을 사용
                     navController.navigate(Screen.BookDetail.createRoute(isbn13))
                 }
             )
         }
 
-        // TODO: 팀원들이 아래에 각자 화면 추가
-        // 예시:
-        // composable(Screen.BookDetail.route) { BookDetailScreen(...) }
-        // composable(Screen.Search.route) { SearchScreen(...) }
-        // composable(Screen.Chatbot.route) { ChatbotScreen(...) }
+        // --------------------------------------------------------
+        // 🚨 4. 검색 화면 (SearchScreen 연결)
+        // --------------------------------------------------------
+        composable(Screen.Search.route) {
+            SearchScreen(
+                // 뒤로가기 버튼 클릭 시
+                onBackClick = {
+                    navController.popBackStack()
+                },
+                // 검색 결과에서 책 클릭 시 상세 화면으로 이동
+                onBookClick = { isbn13 ->
+                    navController.navigate(Screen.BookDetail.createRoute(isbn13))
+                }
+            )
+        }
+
+        // --------------------------------------------------------
+        // 🚨 5. 기타 화면들 (Placeholder - 임시 화면)
+        // 아직 구현되지 않은 화면을 클릭해도 앱이 죽지 않게 막아줍니다.
+        // --------------------------------------------------------
+
+        // 도서 상세 (파라미터 받기 예시)
+        composable(Screen.BookDetail.route) { backStackEntry ->
+            val isbn13 = backStackEntry.arguments?.getString("isbn13") ?: ""
+            PlaceholderScreen(name = "도서 상세 화면\nISBN: $isbn13")
+        }
+
+        // 챗봇
+        composable(Screen.Chatbot.route) {
+            PlaceholderScreen(name = "챗봇 화면 (구현 예정)")
+        }
+
+        // 내 서재
+        composable(Screen.MyLibrary.route) {
+            PlaceholderScreen(name = "내 서재 화면 (구현 예정)")
+        }
+
+        // 마이페이지
+        composable(Screen.MyPage.route) {
+            PlaceholderScreen(name = "마이페이지 (구현 예정)")
+        }
+
+        // 리뷰
+        composable(Screen.Review.route) {
+            PlaceholderScreen(name = "리뷰 화면 (구현 예정)")
+        }
+    }
+}
+
+/**
+ * 임시 화면 (구현되지 않은 화면용)
+ */
+@Composable
+private fun PlaceholderScreen(name: String) {
+    Box(
+        modifier = Modifier.fillMaxSize(),
+        contentAlignment = Alignment.Center
+    ) {
+        Text(text = name)
     }
 }
