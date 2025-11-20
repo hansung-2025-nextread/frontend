@@ -1,24 +1,20 @@
 package com.nextread.readpick.data.remote.api
 
-import com.nextread.readpick.data.model.chatbot.ChatRequest
-import com.nextread.readpick.data.model.common.ApiResponse
 import retrofit2.http.Body
 import retrofit2.http.POST
+import com.nextread.readpick.data.model.chatbot.ChatbotSearchRequest
+import com.nextread.readpick.data.model.chatbot.ChatbotSearchResponse
 
+/**
+ * 챗봇 API 통신을 위한 Retrofit 서비스 인터페이스
+ */
 interface ChatbotApi {
 
     /**
-     * 챗봇과 대화하여 응답을 받음 (서버의 GeminiApiService.generateChatResponse 호출)
+     * 챗봇 검색 API (단일 쿼리 전송)
+     * @param request ChatbotSearchRequest (쿼리 문자열 포함)
+     * @return ChatbotSearchResponse (메시지 및 도서 목록 포함)
      */
-    @POST("v1/api/chatbot/chat") // 서버의 챗봇 엔드포인트 경로를 확인하세요.
-    suspend fun sendChat(
-        @Body request: ChatRequest
-    ): ApiResponse<String> // 서버가 최종 응답 텍스트를 String으로 반환한다고 가정
-
-    // (선택 사항)
-    /**
-     * 의도 분류 요청
-     */
-    // @POST("v1/api/chatbot/intent")
-    // suspend fun classifyIntent(@Body query: String): ApiResponse<SearchType>
+    @POST("v1/api/chatbot/search")
+    suspend fun searchChatbot(@Body request: ChatbotSearchRequest): ChatbotSearchResponse
 }

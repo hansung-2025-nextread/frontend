@@ -16,57 +16,25 @@ import retrofit2.Retrofit
 import java.util.concurrent.TimeUnit
 import javax.inject.Singleton
 
-/**
- * 네트워크 관련 의존성 주입 모듈
- *
- * 제공하는 객체:
- * - Json: Kotlinx Serialization 설정
- * - OkHttpClient: HTTP 클라이언트 (Interceptor 포함)
- * - Retrofit: REST API 클라이언트
- * - API 인터페이스들 (팀원들이 추가)
- *
- * @Module: Hilt 모듈임을 선언
- * @InstallIn(SingletonComponent::class): 앱 전체에서 싱글톤으로 사용
- */
+// ★ Gson 관련 임포트 모두 삭제 (com.google.gson..., com.squareup...gson...)
+
 @Module
 @InstallIn(SingletonComponent::class)
 object NetworkModule {
 
-    // Base URL - local.properties에서 읽어옴
-    // local.properties에 BASE_URL을 설정하거나, 기본값 사용
     private val BASE_URL = com.nextread.readpick.BuildConfig.BASE_URL
 
-    /**
-     * Json 설정 제공
-     *
-     * Kotlinx Serialization 설정
-     * - ignoreUnknownKeys: 서버에서 추가 필드가 와도 에러 안 남
-     * - coerceInputValues: null 값 처리 유연하게
-     * - isLenient: 엄격하지 않은 JSON 파싱
-     * - prettyPrint: 예쁘게 출력 (디버깅용)
-     */
     @Provides
     @Singleton
     fun provideJson(): Json = Json {
-        ignoreUnknownKeys = true  // 모르는 키는 무시
-        coerceInputValues = true  // null 값 처리
-        isLenient = true          // 엄격하지 않은 JSON 파싱
-        prettyPrint = true        // 예쁘게 출력 (디버깅용)
+        ignoreUnknownKeys = true
+        coerceInputValues = true
+        isLenient = true
+        prettyPrint = true
     }
 
-    /**
-     * OkHttpClient 제공
-     *
-     * HTTP 통신을 실제로 처리하는 클라이언트
-     * - AuthInterceptor: JWT 토큰 자동 추가
-     * - LoggingInterceptor: 네트워크 로그
-     * - connectTimeout: 연결 타임아웃 (10초)
-     * - readTimeout: 읽기 타임아웃 (30초)
-     * - writeTimeout: 쓰기 타임아웃 (30초)
-     *
-     * @param authInterceptor JWT 토큰 자동 추가
-     * @param loggingInterceptorProvider 네트워크 로그
-     */
+    // ★ provideGson() 함수 삭제! (더 이상 필요 없음)
+
     @Provides
     @Singleton
     fun provideOkHttpClient(
@@ -74,77 +42,51 @@ object NetworkModule {
         loggingInterceptorProvider: LoggingInterceptorProvider
     ): OkHttpClient {
         return OkHttpClient.Builder()
-            .addInterceptor(authInterceptor)           // JWT 토큰 자동 추가
-            .addInterceptor(loggingInterceptorProvider.provide())  // 로깅
-            .connectTimeout(10, TimeUnit.SECONDS)      // 연결 타임아웃
-            .readTimeout(30, TimeUnit.SECONDS)         // 읽기 타임아웃
-            .writeTimeout(30, TimeUnit.SECONDS)        // 쓰기 타임아웃
+            .addInterceptor(authInterceptor)
+            .addInterceptor(loggingInterceptorProvider.provide())
+            .connectTimeout(10, TimeUnit.SECONDS)
+            .readTimeout(30, TimeUnit.SECONDS)
+            .writeTimeout(30, TimeUnit.SECONDS)
             .build()
     }
 
-    /**
-     * Retrofit 제공
-     *
-     * REST API 호출을 위한 Retrofit 인스턴스
-     * - baseUrl: API 기본 URL
-     * - client: OkHttpClient (Interceptor 포함)
-     * - converterFactory: JSON ↔ Kotlin 객체 변환
-     *
-     * @param okHttpClient OkHttp 클라이언트
-     * @param json Kotlinx Serialization 설정
-     */
     @Provides
     @Singleton
     fun provideRetrofit(
         okHttpClient: OkHttpClient,
         json: Json
+        // ★ gson: Gson 파라미터 삭제!
     ): Retrofit {
         return Retrofit.Builder()
             .baseUrl(BASE_URL)
             .client(okHttpClient)
+            // Kotlinx Serialization 컨버터만 남김
             .addConverterFactory(
                 json.asConverterFactory("application/json".toMediaType())
             )
+            // ★ Gson 컨버터 추가하는 줄 삭제!
             .build()
     }
 
-    /**
-     * AuthApi 제공
-     *
-     * 인증 관련 API 인터페이스
-     */
+    // ... (나머지 API provide 함수들은 그대로 유지) ...
     @Provides
     @Singleton
     fun provideAuthApi(retrofit: Retrofit): com.nextread.readpick.data.remote.api.AuthApi {
         return retrofit.create(com.nextread.readpick.data.remote.api.AuthApi::class.java)
     }
 
-    /**
-     * OnboardingApi 제공
-     *
-     * 온보딩 관련 API 인터페이스
-     * - 온보딩 상태 확인
-     * - 카테고리 목록 조회
-     * - 카테고리 선택 제출
-     */
     @Provides
     @Singleton
     fun provideOnboardingApi(retrofit: Retrofit): com.nextread.readpick.data.remote.api.OnboardingApi {
         return retrofit.create(com.nextread.readpick.data.remote.api.OnboardingApi::class.java)
     }
 
-    /**
-     * BookApi 제공 - 추가!
-     */
     @Provides
     @Singleton
     fun provideBookApi(retrofit: Retrofit): BookApi {
         return retrofit.create(BookApi::class.java)
     }
 
-    /**
-    * ChatbotApi 제공 - 추가!
-    */
     @Provides
     @Singleton
     fun provideChatbotApi(retrofit: Retrofit): ChatbotApi {

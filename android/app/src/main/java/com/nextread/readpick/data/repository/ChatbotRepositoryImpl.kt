@@ -1,37 +1,30 @@
 package com.nextread.readpick.data.repository
 
-import android.util.Log
-import com.nextread.readpick.data.model.chatbot.ChatMessage
-import com.nextread.readpick.data.model.chatbot.ChatRequest
 import com.nextread.readpick.data.remote.api.ChatbotApi
 import com.nextread.readpick.domain.repository.ChatbotRepository
+import com.nextread.readpick.data.model.chatbot.ChatbotSearchRequest
+import com.nextread.readpick.data.model.chatbot.ChatbotSearchResponse
 import javax.inject.Inject
 
+/**
+ * ChatbotRepository의 구현체
+ */
 class ChatbotRepositoryImpl @Inject constructor(
-    private val chatbotApi: ChatbotApi
+    private val apiService: ChatbotApi
 ) : ChatbotRepository {
 
-    override suspend fun getChatResponse(
-        userMessage: String,
-        history: List<ChatMessage>
-    ): Result<String> = runCatching {
-        Log.d(TAG, "챗봇 API 호출: $userMessage")
-
-        val request = ChatRequest(userMessage, history)
-        val response = chatbotApi.sendChat(request)
-
-        if (response.success && response.data != null) {
-            Log.d(TAG, "챗봇 응답 성공")
-            response.data
-        } else {
-            Log.e(TAG, "챗봇 응답 실패: ${response.message}")
-            throw Exception(response.message ?: "챗봇 응답을 받지 못했습니다")
+    /**
+     * 새로운 API 명세에 따라 ChatbotSearchRequest를 생성하여 API를 호출합니다.
+     */
+    override suspend fun searchChatbot(query: String): Result<ChatbotSearchResponse> {
+        return try {
+            val request = ChatbotSearchRequest(query = query)
+            val response = apiService.searchChatbot(request)
+            // 응답이 성공적으로 왔다면 Result.success 반환
+            Result.success(response)
+        } catch (e: Exception) {
+            // 통신 오류, 파싱 오류 등 예외 발생 시 Result.failure 반환
+            Result.failure(e)
         }
-    }.onFailure { exception ->
-        Log.e(TAG, "챗봇 API 호출 에러", exception)
-    }
-
-    companion object {
-        private const val TAG = "ChatbotRepository"
     }
 }
