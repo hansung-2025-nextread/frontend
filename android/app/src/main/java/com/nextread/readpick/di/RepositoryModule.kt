@@ -2,9 +2,11 @@ package com.nextread.readpick.di
 
 import com.nextread.readpick.data.repository.AuthRepositoryImpl
 import com.nextread.readpick.data.repository.BookRepositoryImpl
+import com.nextread.readpick.data.repository.ChatbotRepositoryImpl
 import com.nextread.readpick.data.repository.OnboardingRepositoryImpl
 import com.nextread.readpick.domain.repository.AuthRepository
 import com.nextread.readpick.domain.repository.BookRepository
+import com.nextread.readpick.domain.repository.ChatbotRepository
 import com.nextread.readpick.domain.repository.OnboardingRepository
 import dagger.Binds
 import dagger.Module
@@ -65,4 +67,13 @@ abstract class RepositoryModule {
     abstract fun bindBookRepository(
         bookRepositoryImpl: BookRepositoryImpl
     ): BookRepository
+
+    /**
+     * ChatbotRepository 바인딩 - 추가!
+     */
+    @Binds
+    @Singleton
+    abstract fun bindChatbotRepository(
+        chatbotRepositoryImpl: ChatbotRepositoryImpl
+    ): ChatbotRepository
 }

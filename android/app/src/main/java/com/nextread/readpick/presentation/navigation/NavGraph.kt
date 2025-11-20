@@ -11,7 +11,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import com.nextread.readpick.presentation.auth.login.LoginScreen
 import com.nextread.readpick.presentation.onboarding.OnboardingScreen
-import com.nextread.readpick.presentation.chatbot.ChatbotScreen
+import com.nextread.readpick.presentation.chatbot.ChatBotScreen
 
 // --------------------------------------------------------
 // 🚨 1. 우리가 만든 실제 HomeScreen을 import 합니다.
@@ -27,13 +27,11 @@ import com.nextread.readpick.presentation.home.HomeScreen
 @Composable
 fun ReadPickNavGraph(
     navController: NavHostController,
-    // --------------------------------------------------------
-    // 🚨 2. 테스트를 위해 시작 화면을 Home으로 변경합니다.
-    // --------------------------------------------------------
+    startDestination: String = Screen.Chatbot.route
 ) {
     NavHost(
         navController = navController,
-        startDestination = startDestination // 👈 'Home'이 시작점이 됩니다.
+        startDestination = startDestination
     ) {
         // 로그인 화면
         composable(Screen.Login.route) {
@@ -63,9 +61,6 @@ fun ReadPickNavGraph(
             )
         }
 
-        // --------------------------------------------------------
-        // 🚨 3. 홈 화면 (Placeholder를 실제 HomeScreen으로 교체)
-        // --------------------------------------------------------
         composable(Screen.Home.route) {
             HomeScreen(
                 onMenuClick = { /* TODO: 네비게이션 드로어 열기 */ },
@@ -75,7 +70,7 @@ fun ReadPickNavGraph(
                     // TODO: (팀원1) Screen.Search 추가 후 연결
                 },
                 onChatbotClick = {
-                    // TODO: (팀원2) Screen.Chatbot 추가 후 연결
+                    navController.navigate(Screen.Chatbot.route)
                 },
                 onMyLibraryClick = {
                     // TODO: (팀원3) Screen.Collection 추가 후 연결
@@ -95,6 +90,6 @@ fun ReadPickNavGraph(
         // composable(Screen.BookDetail.route) { BookDetailScreen(...) }
         // composable(Screen.Search.route) { SearchScreen(...) }
 
-        composable(Screen.Chatbot.route) { ChatbotScreen() }
+        composable(Screen.Chatbot.route) { ChatBotScreen() }
     }
 }

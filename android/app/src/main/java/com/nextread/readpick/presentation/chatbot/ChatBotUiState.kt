@@ -21,7 +21,8 @@ sealed interface ChatbotUiState {
 
     /** 데이터 로드 성공 상태 */
     data class Success(
-        val messages: List<ChatMessage> // 채팅 메시지 목록
+        val messages: List<com.nextread.readpick.presentation.chatbot.ChatMessage>, // ★★★ UI용 ChatMessage 리스트 ★★★
+        val isLoading: Boolean = false  // API 통신 중인지 여부를 나타내는 플래그
     ) : ChatbotUiState
 
     /** 에러 발생 상태 */

@@ -3,67 +3,110 @@ package com.nextread.readpick.presentation.chatbot
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
+import com.nextread.readpick.domain.repository.ChatbotRepository
+
+// ★ 중요: 서버 전송용 DTO 객체는 'ApiChatMessage'라는 별명으로 임포트하여 UI 객체와 구분합니다.
+import com.nextread.readpick.data.model.chatbot.ChatMessage as ApiChatMessage
 
 /**
- * 챗봇 화면의 ViewModel
- * 가이드라인의 HomeViewModel 및 API 호출 스니펫을 따릅니다.
+ * 챗봇 화면의 로직을 담당하는 ViewModel
  */
 @HiltViewModel
 class ChatbotViewModel @Inject constructor(
-    // 추후 챗봇 Repository를 주입받습니다.
-    // private val chatbotRepository: ChatbotRepository
+    private val chatbotRepository: ChatbotRepository
 ) : ViewModel() {
 
-    // UI 상태를 관리하는 MutableStateFlow
-    // 초기 상태는 비어있는 메시지 목록을 가진 Success 상태입니다.
-    private val _uiState = MutableStateFlow<ChatbotUiState>(ChatbotUiState.Success(emptyList()))
+    // ★ 초기 상태 설정: 앱을 켜자마자 'Success' 상태로 시작하여 대화창을 바로 보여줍니다.
+    // ChatMessage는 같은 패키지(presentation.chatbot)에 있는 UI용 클래스입니다.
+    private val _uiState = MutableStateFlow<ChatbotUiState>(
+        ChatbotUiState.Success(
+            messages = listOf(
+                ChatMessage(
+                    text = "Next Read에 오신 것을 환영합니다! 원하는 책을 추천받아 보세요.",
+                    isFromUser = false
+                )
+            ),
+            isLoading = false
+        )
+    )
     val uiState: StateFlow<ChatbotUiState> = _uiState.asStateFlow()
 
+    // init 블록은 제거했습니다. (위의 초기값으로 대체됨)
+
     /**
-     * 사용자가 메시지를 전송할 때 호출되는 함수
+     * 사용자가 메시지를 입력하고 전송 버튼을 눌렀을 때 호출
      */
     fun sendMessage(text: String) {
-        // 1. 사용자의 메시지를 즉시 UI에 추가
-        val userMessage = ChatMessage(text = text, isFromUser = true)
+        val currentState = _uiState.value
 
-        _uiState.update { currentState ->
-            if (currentState is ChatbotUiState.Success) {
-                currentState.copy(messages = currentState.messages + userMessage)
-            } else {
-                // 이전 상태가 Success가 아니었다면(예: Error),
-                // 새 메시지 목록으로 Success 상태를 만듭니다.
-                ChatbotUiState.Success(listOf(userMessage))
-            }
+        // 로딩 중이거나 에러 상태일 때는 중복 전송을 막습니다.
+        if (currentState !is ChatbotUiState.Success || currentState.isLoading) {
+            return
         }
 
-        // 2. 챗봇 응답을 위해 viewModelScope 사용 (가이드 스니펫 참고)
+        // 1. 화면에 보여줄 사용자 메시지 생성 (UI용 ChatMessage)
+        val userMessage = ChatMessage(text = text, isFromUser = true)
+        val currentMessages = currentState.messages
+
+        // 2. UI 즉시 업데이트: 사용자 메시지 추가 + 로딩 표시 시작
+        _uiState.update {
+            if (it is ChatbotUiState.Success) {
+                it.copy(messages = currentMessages + userMessage, isLoading = true)
+            } else it
+        }
+
         viewModelScope.launch {
             try {
-                // TODO: 추후 여기서 Repository를 호출하여 실제 API 통신
-                // 지금은 1초 딜레이 후 가짜 응답을 생성합니다.
-                delay(1000)
-
-                val botResponseText = "안녕하세요! \"$text\"라고 말씀하셨네요. 지금은 간단한 답변만 가능해요."
-                val botMessage = ChatMessage(text = botResponseText, isFromUser = false)
-
-                // 3. 챗봇의 응답을 UI에 추가
-                _uiState.update { currentState ->
-                    if (currentState is ChatbotUiState.Success) {
-                        currentState.copy(messages = currentState.messages + botMessage)
-                    } else {
-                        // 이전 상태가 바뀌었다면(예: Error), 현재 상태를 유지
-                        currentState
-                    }
+                // 3. API 전송을 위해 UI 메시지 리스트를 DTO(ApiChatMessage) 리스트로 변환
+                // map 함수 내부에서 명시적으로 ApiChatMessage 생성자를 호출합니다.
+                val historyForApi: List<ApiChatMessage> = currentMessages.map { msg ->
+                    ApiChatMessage(
+                        role = if (msg.isFromUser) "user" else "assistant",
+                        content = msg.text
+                    )
                 }
+
+                // 4. Repository를 통해 실제 API 호출
+                chatbotRepository.getChatResponse(
+                    userMessage = text,
+                    history = historyForApi
+                )
+                    .onSuccess { responseText ->
+                        // 5. 성공 시: 챗봇 응답 메시지 생성 (UI용 ChatMessage)
+                        val botMessage = ChatMessage(text = responseText, isFromUser = false)
+
+                        // UI 업데이트: 챗봇 메시지 추가 + 로딩 표시 종료
+                        _uiState.update { current ->
+                            if (current is ChatbotUiState.Success) {
+                                current.copy(messages = current.messages + botMessage, isLoading = false)
+                            } else current
+                        }
+                    }
+                    .onFailure { exception ->
+                        // 6. 실패 시: 에러 메시지를 챗봇 말풍선으로 보여줌
+                        val errorMessage = "죄송합니다. 오류가 발생했습니다: ${exception.message}"
+                        val errorBotMessage = ChatMessage(text = errorMessage, isFromUser = false)
+
+                        _uiState.update { current ->
+                            if (current is ChatbotUiState.Success) {
+                                current.copy(messages = current.messages + errorBotMessage, isLoading = false)
+                            } else {
+                                // 만약 상태가 꼬였을 경우를 대비한 복구 코드
+                                ChatbotUiState.Success(
+                                    messages = currentMessages + userMessage + errorBotMessage,
+                                    isLoading = false
+                                )
+                            }
+                        }
+                    }
             } catch (e: Exception) {
-                // 4. API 호출 실패 시 Error 상태로 변경 (가이드 스니펫 참고)
+                // 예상치 못한 시스템 에러 처리
                 _uiState.value = ChatbotUiState.Error(e.message ?: "알 수 없는 에러가 발생했습니다.")
             }
         }

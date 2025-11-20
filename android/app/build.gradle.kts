@@ -86,6 +86,7 @@ dependencies {
 
     // Hilt - 의존성 주입 (Repository, ViewModel, API 자동 생성 및 주입)
     implementation(libs.hilt.android)
+    implementation(libs.androidx.compose.foundation)
     kapt(libs.hilt.compiler)
     implementation(libs.hilt.navigation.compose)
 
