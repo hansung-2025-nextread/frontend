@@ -11,6 +11,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import com.nextread.readpick.presentation.auth.login.LoginScreen
 import com.nextread.readpick.presentation.onboarding.OnboardingScreen
+import com.nextread.readpick.presentation.chatbot.ChatbotScreen
 
 // --------------------------------------------------------
 // 🚨 1. 우리가 만든 실제 HomeScreen을 import 합니다.
@@ -29,7 +30,6 @@ fun ReadPickNavGraph(
     // --------------------------------------------------------
     // 🚨 2. 테스트를 위해 시작 화면을 Home으로 변경합니다.
     // --------------------------------------------------------
-    startDestination: String = Screen.Login.route
 ) {
     NavHost(
         navController = navController,
@@ -94,6 +94,7 @@ fun ReadPickNavGraph(
         // 예시:
         // composable(Screen.BookDetail.route) { BookDetailScreen(...) }
         // composable(Screen.Search.route) { SearchScreen(...) }
-        // composable(Screen.Chatbot.route) { ChatbotScreen(...) }
+
+        composable(Screen.Chatbot.route) { ChatbotScreen() }
     }
 }
