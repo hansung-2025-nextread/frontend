@@ -7,33 +7,30 @@ package com.nextread.readpick.presentation.navigation
  * 새로운 화면을 추가할 때는 이 클래스에 새로운 object를 추가하세요.
  */
 sealed class Screen(val route: String) {
-    /**
-     * 로그인 화면
-     * - Google OAuth 인증
-     * - 로그인 성공 시 온보딩 상태 확인 후 Onboarding 또는 Home으로 이동
-     */
     data object Login : Screen("login")
-
-    /**
-     * 온보딩 화면
-     * - 신규 사용자의 관심 카테고리 선택
-     * - 8개 카테고리 중 선택 또는 건너뛰기 가능
-     * - 완료 후 Home으로 이동
-     */
     data object Onboarding : Screen("onboarding")
-
-    /**
-     * 홈 화면
-     * - 베스트셀러 목록
-     * - 맞춤 추천 도서
-     */
     data object Home : Screen("home")
 
+    // --------------------------------------------------------
+    // 🚨 [수정] 팀원1 담당 화면 주석 해제
+    // --------------------------------------------------------
+    /**
+     * 도서 상세 화면
+     * @param isbn13 책 고유 ID
+     */
+    data object BookDetail : Screen("book/{isbn13}") {
+        fun createRoute(isbn13: String) = "book/$isbn13"
+    }
+
+    /**
+     * 검색 화면
+     */
+    data object Search : Screen("search")
+
     // TODO: 팀원들이 추가할 화면들
-    // data object BookDetail : Screen("book/{isbn13}") - 팀원1
-    // data object Search : Screen("search") - 팀원1
-    // data object Chatbot : Screen("chatbot") - 팀원2
-    // data object Review : Screen("review") - 팀원2
-    // data object MyPage : Screen("mypage") - 팀원3
-    // data object Collection : Screen("collection") - 팀원3
+    data object Chatbot : Screen("chatbot")
+    data object Review : Screen("review")
+    data object MyPage : Screen("mypage")
+
+    data object MyLibrary : Screen("mylibrary")
 }
