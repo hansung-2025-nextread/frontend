@@ -60,6 +60,7 @@ import com.nextread.readpick.data.model.admin.ReviewDetailDto
 import com.nextread.readpick.data.model.admin.UserDetailDto
 import com.nextread.readpick.data.model.admin.UserReviewDto
 
+// 관리자 대쉬보드
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AdminDashboardScreen(
