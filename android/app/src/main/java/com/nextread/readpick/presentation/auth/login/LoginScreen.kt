@@ -31,10 +31,11 @@ import kotlinx.coroutines.launch
  *
  * @param onLoginSuccess 로그인 성공 시 실행할 콜백
  * - needsOnboarding: 온보딩 필요 여부 (true=온보딩 필요, false=홈으로 이동)
+ * - isAdmin: 관리자 여부 (true=관리자 대시보드로 이동)
  */
 @Composable
 fun LoginScreen(
-    onLoginSuccess: (needsOnboarding: Boolean) -> Unit,
+    onLoginSuccess: (needsOnboarding: Boolean, isAdmin: Boolean) -> Unit,
     viewModel: LoginViewModel = hiltViewModel()
 ) {
     val context = LocalContext.current
@@ -47,8 +48,8 @@ fun LoginScreen(
     // 로그인 성공 시 화면 전환 (LaunchedEffect로 상태 관찰)
     LaunchedEffect(uiState) {
         if (uiState is LoginUiState.Success) {
-            val needsOnboarding = (uiState as LoginUiState.Success).needsOnboarding
-            onLoginSuccess(needsOnboarding)
+            val success = uiState as LoginUiState.Success
+            onLoginSuccess(success.needsOnboarding, success.isAdmin)
         }
     }
 

@@ -33,4 +33,10 @@ sealed class Screen(val route: String) {
     data object MyPage : Screen("mypage")
 
     data object MyLibrary : Screen("mylibrary")
+
+    /**
+     * 관리자 대시보드 화면
+     * ADMIN 권한을 가진 사용자만 접근 가능
+     */
+    data object AdminDashboard : Screen("admin/dashboard")
 }
