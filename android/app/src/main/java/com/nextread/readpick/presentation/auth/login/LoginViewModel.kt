@@ -2,6 +2,7 @@ package com.nextread.readpick.presentation.auth.login
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.nextread.readpick.data.local.TokenManager
 import com.nextread.readpick.domain.repository.AuthRepository
 import com.nextread.readpick.domain.repository.OnboardingRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -23,7 +24,8 @@ import javax.inject.Inject
 @HiltViewModel
 class LoginViewModel @Inject constructor(
     private val authRepository: AuthRepository,
-    private val onboardingRepository: OnboardingRepository
+    private val onboardingRepository: OnboardingRepository,
+    private val tokenManager: TokenManager
 ) : ViewModel() {
 
     // UI 상태 (private mutable, public immutable)
@@ -80,10 +82,23 @@ class LoginViewModel @Inject constructor(
      * 온보딩 상태 확인 및 화면 전환 결정
      *
      * 로그인 성공 후 호출되어 사용자가 온보딩을 완료했는지 확인합니다.
+     * - 관리자: Success(isAdmin = true) → AdminDashboard로 이동
      * - 온보딩 완료: Success(needsOnboarding = false) → Home으로 이동
      * - 온보딩 필요: Success(needsOnboarding = true) → Onboarding으로 이동
      */
     private suspend fun checkOnboardingStatusAndNavigate() {
+        // 관리자인 경우 바로 AdminDashboard로 이동
+        val isAdmin = tokenManager.isAdmin()
+        if (isAdmin) {
+            android.util.Log.d("LoginViewModel", "👑 관리자 계정 - AdminDashboard로 이동")
+            _uiState.value = LoginUiState.Success(
+                needsOnboarding = false,
+                isAdmin = true
+            )
+            return
+        }
+
+        // 일반 사용자는 온보딩 상태 확인
         onboardingRepository.checkOnboardingStatus()
             .onSuccess { isOnboardingComplete ->
                 val needsOnboarding = !isOnboardingComplete
@@ -92,7 +107,10 @@ class LoginViewModel @Inject constructor(
                     "온보딩 완료 여부: $isOnboardingComplete (needsOnboarding: $needsOnboarding)"
                 )
 
-                _uiState.value = LoginUiState.Success(needsOnboarding = needsOnboarding)
+                _uiState.value = LoginUiState.Success(
+                    needsOnboarding = needsOnboarding,
+                    isAdmin = false
+                )
 
                 if (needsOnboarding) {
                     android.util.Log.d("LoginViewModel", "➡️ Onboarding 화면으로 이동")
@@ -104,7 +122,10 @@ class LoginViewModel @Inject constructor(
                 android.util.Log.e("LoginViewModel", "❌ 온보딩 상태 확인 실패: ${exception.message}", exception)
                 // 온보딩 상태 확인 실패 시 기본적으로 온보딩 화면으로 이동
                 // (안전장치: 신규 사용자일 가능성을 고려)
-                _uiState.value = LoginUiState.Success(needsOnboarding = true)
+                _uiState.value = LoginUiState.Success(
+                    needsOnboarding = true,
+                    isAdmin = false
+                )
                 android.util.Log.d("LoginViewModel", "⚠️ 온보딩 상태 확인 실패 - 기본값으로 Onboarding 화면 이동")
             }
     }

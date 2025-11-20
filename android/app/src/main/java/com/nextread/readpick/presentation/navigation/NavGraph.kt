@@ -9,6 +9,7 @@ import androidx.compose.ui.Modifier
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import com.nextread.readpick.presentation.admin.AdminDashboardScreen
 import com.nextread.readpick.presentation.auth.login.LoginScreen
 import com.nextread.readpick.presentation.home.HomeScreen
 import com.nextread.readpick.presentation.onboarding.OnboardingScreen
@@ -31,14 +32,25 @@ fun ReadPickNavGraph(
         // 1. 로그인 화면
         composable(Screen.Login.route) {
             LoginScreen(
-                onLoginSuccess = { needsOnboarding ->
-                    if (needsOnboarding) {
-                        navController.navigate(Screen.Onboarding.route) {
-                            popUpTo(Screen.Login.route) { inclusive = true }
+                onLoginSuccess = { needsOnboarding, isAdmin ->
+                    when {
+                        // 관리자인 경우 AdminDashboard로 이동
+                        isAdmin -> {
+                            navController.navigate(Screen.AdminDashboard.route) {
+                                popUpTo(Screen.Login.route) { inclusive = true }
+                            }
                         }
-                    } else {
-                        navController.navigate(Screen.Home.route) {
-                            popUpTo(Screen.Login.route) { inclusive = true }
+                        // 온보딩 필요한 경우
+                        needsOnboarding -> {
+                            navController.navigate(Screen.Onboarding.route) {
+                                popUpTo(Screen.Login.route) { inclusive = true }
+                            }
+                        }
+                        // 일반 사용자 홈으로 이동
+                        else -> {
+                            navController.navigate(Screen.Home.route) {
+                                popUpTo(Screen.Login.route) { inclusive = true }
+                            }
                         }
                     }
                 }
@@ -129,6 +141,17 @@ fun ReadPickNavGraph(
         // 리뷰
         composable(Screen.Review.route) {
             PlaceholderScreen(name = "리뷰 화면 (구현 예정)")
+        }
+
+        // 관리자 대시보드
+        composable(Screen.AdminDashboard.route) {
+            AdminDashboardScreen(
+                onLogout = {
+                    navController.navigate(Screen.Login.route) {
+                        popUpTo(0) { inclusive = true }
+                    }
+                }
+            )
         }
     }
 }

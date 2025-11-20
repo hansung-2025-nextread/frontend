@@ -21,7 +21,8 @@ import kotlinx.serialization.Serializable
  *     "accessToken": "eyJ...",
  *     "email": "user@gmail.com",
  *     "name": "박지호",
- *     "picture": "https://..."
+ *     "picture": "https://...",
+ *     "role": "USER"
  *   }
  * }
  * ```
@@ -31,5 +32,6 @@ data class LoginResponse(
     @SerialName("accessToken") val accessToken: String,  // 백엔드는 accessToken으로 반환
     val email: String,
     val name: String,
-    val picture: String
+    val picture: String,
+    val role: String = "USER"  // USER 또는 ADMIN
 )
