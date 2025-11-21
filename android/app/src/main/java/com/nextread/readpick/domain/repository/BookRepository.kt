@@ -1,7 +1,7 @@
 package com.nextread.readpick.domain.repository
 
 import com.nextread.readpick.data.model.book.BookDto
-import com.nextread.readpick.data.model.common.ApiResponse
+import com.nextread.readpick.data.model.book.SavedBookDto
 import com.nextread.readpick.data.model.search.SearchBookDto
 
 interface BookRepository {
@@ -24,4 +24,9 @@ interface BookRepository {
 
     // 반환 타입을 List<SearchBookDto>로 설정
     suspend fun searchBooks(keyword: String): Result<List<SearchBookDto>>
+
+    /**
+     * 내 서재 책 목록 조회
+     */
+    suspend fun getSavedBooks(): Result<List<SavedBookDto>>
 }

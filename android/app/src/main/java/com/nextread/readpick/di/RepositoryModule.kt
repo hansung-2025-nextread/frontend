@@ -3,10 +3,12 @@ package com.nextread.readpick.di
 import com.nextread.readpick.data.repository.AdminRepositoryImpl
 import com.nextread.readpick.data.repository.AuthRepositoryImpl
 import com.nextread.readpick.data.repository.BookRepositoryImpl
+import com.nextread.readpick.data.repository.CommunityRepositoryImpl
 import com.nextread.readpick.data.repository.OnboardingRepositoryImpl
 import com.nextread.readpick.domain.repository.AdminRepository
 import com.nextread.readpick.domain.repository.AuthRepository
 import com.nextread.readpick.domain.repository.BookRepository
+import com.nextread.readpick.domain.repository.CommunityRepository
 import com.nextread.readpick.domain.repository.OnboardingRepository
 import dagger.Binds
 import dagger.Module
@@ -79,4 +81,16 @@ abstract class RepositoryModule {
     abstract fun bindAdminRepository(
         adminRepositoryImpl: AdminRepositoryImpl
     ): AdminRepository
+
+    /**
+     * CommunityRepository 바인딩
+     *
+     * CommunityRepository 인터페이스를 요청하면
+     * CommunityRepositoryImpl 구현체를 제공
+     */
+    @Binds
+    @Singleton
+    abstract fun bindCommunityRepository(
+        communityRepositoryImpl: CommunityRepositoryImpl
+    ): CommunityRepository
 }
