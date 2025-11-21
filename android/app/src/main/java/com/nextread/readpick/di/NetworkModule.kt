@@ -3,6 +3,7 @@ package com.nextread.readpick.di
 import com.jakewharton.retrofit2.converter.kotlinx.serialization.asConverterFactory
 import com.nextread.readpick.data.remote.api.AdminApi
 import com.nextread.readpick.data.remote.api.BookApi
+import com.nextread.readpick.data.remote.api.CommunityApi
 import com.nextread.readpick.data.remote.interceptor.AuthInterceptor
 import com.nextread.readpick.data.remote.interceptor.LoggingInterceptorProvider
 import dagger.Module
@@ -153,5 +154,19 @@ object NetworkModule {
     @Singleton
     fun provideAdminApi(retrofit: Retrofit): AdminApi {
         return retrofit.create(AdminApi::class.java)
+    }
+
+    /**
+     * CommunityApi 제공
+     *
+     * 커뮤니티 API 인터페이스
+     * - 게시물 조회/작성/삭제
+     * - 댓글 조회/작성/삭제
+     * - 좋아요
+     */
+    @Provides
+    @Singleton
+    fun provideCommunityApi(retrofit: Retrofit): CommunityApi {
+        return retrofit.create(CommunityApi::class.java)
     }
 }

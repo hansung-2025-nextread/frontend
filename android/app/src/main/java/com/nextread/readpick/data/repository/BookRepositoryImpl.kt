@@ -2,6 +2,7 @@ package com.nextread.readpick.data.repository
 
 import android.util.Log
 import com.nextread.readpick.data.model.book.BookDto
+import com.nextread.readpick.data.model.book.SavedBookDto
 import com.nextread.readpick.data.model.search.SearchBookDto
 import com.nextread.readpick.data.model.search.SearchRequest
 import com.nextread.readpick.data.remote.api.BookApi
@@ -86,6 +87,16 @@ class BookRepositoryImpl @Inject constructor(
         }
     }.onFailure { exception ->
         Log.e(TAG, "책 저장 에러", exception)
+    }
+
+    /**
+     * 내 서재 책 목록 조회
+     */
+    override suspend fun getSavedBooks(): Result<List<SavedBookDto>> = runCatching {
+        val response = bookApi.getSavedBooks()
+        response.content
+    }.onFailure { exception ->
+        Log.e(TAG, "내 서재 조회 에러", exception)
     }
 
     companion object {

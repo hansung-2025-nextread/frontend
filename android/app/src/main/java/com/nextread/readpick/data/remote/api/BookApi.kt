@@ -1,7 +1,7 @@
 package com.nextread.readpick.data.remote.api
 
 import com.nextread.readpick.data.model.book.BookDto
-import com.nextread.readpick.data.model.book.BookListResponse
+import com.nextread.readpick.data.model.book.SavedBookPageResponse
 import com.nextread.readpick.data.model.common.ApiResponse
 import com.nextread.readpick.data.model.search.SearchRequest
 import com.nextread.readpick.data.model.search.SearchResponseData
@@ -45,4 +45,14 @@ interface BookApi {
     suspend fun searchBooks(
         @Body request: SearchRequest
     ): ApiResponse<SearchResponseData>
+
+    /**
+     * 내 서재 책 목록 조회
+     * 참고: 백엔드에서 ApiResponse로 감싸지 않고 Page 직접 반환
+     */
+    @GET("v1/api/users/me/saved-books")
+    suspend fun getSavedBooks(
+        @Query("page") page: Int = 0,
+        @Query("size") size: Int = 100
+    ): SavedBookPageResponse
 }
