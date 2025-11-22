@@ -16,6 +16,7 @@ import com.nextread.readpick.presentation.onboarding.OnboardingScreen
 
 // 🚨 [추가] SearchScreen import
 import com.nextread.readpick.presentation.search.SearchScreen
+import com.nextread.readpick.presentation.mypage.MyPageScreen
 
 /**
  * ReadPick 앱의 전체 Navigation Graph
@@ -113,6 +114,47 @@ fun ReadPickNavGraph(
         }
 
         // --------------------------------------------------------
+        // 🚨 5. 마이페이지 (MyPage Screen) - 구현된 화면으로 교체
+        // --------------------------------------------------------
+        composable(Screen.MyPage.route) {
+            MyPageScreen(
+                // 메뉴: 로그아웃 성공 시 로그인 화면으로 이동
+                onNavigateToLogin = {
+                    navController.navigate(Screen.Login.route) {
+                        popUpTo(Screen.Home.route) { inclusive = true } // 홈 화면까지 모두 제거
+                    }
+                },
+                // 메뉴: 내가 작성한 리뷰 보기 화면으로 이동
+                onNavigateToReviews = {
+                    navController.navigate(Screen.Review.route)
+                },
+                // 메뉴: 검색 기록 삭제 (이동 필요 없음, ViewModel에서 처리)
+                onNavigateToSearchHistory = { /* ViewModel에서 처리, 네비게이션 없음 */ },
+
+                // BottomNav: 홈 화면으로 이동
+                onNavigateToHome = {
+                    navController.navigate(Screen.Home.route) {
+                        popUpTo(Screen.Home.route) { inclusive = false } // Home으로 돌아가기
+                        launchSingleTop = true
+                    }
+                },
+                // BottomNav: 내 서재 화면으로 이동
+                onNavigateToCollection = {
+                    navController.navigate(Screen.MyLibrary.route) {
+                        popUpTo(Screen.Home.route) { inclusive = false }
+                        launchSingleTop = true
+                    }
+                },
+                // BottomNav: 현재 마이페이지를 다시 클릭
+                onNavigateToMyPage = {
+                    navController.navigate(Screen.MyPage.route) {
+                        launchSingleTop = true // 현재 화면이므로 싱글 탑으로 중복 쌓임 방지
+                    }
+                }
+            )
+        }
+
+        // --------------------------------------------------------
         // 🚨 5. 기타 화면들 (Placeholder - 임시 화면)
         // 아직 구현되지 않은 화면을 클릭해도 앱이 죽지 않게 막아줍니다.
         // --------------------------------------------------------
@@ -133,10 +175,6 @@ fun ReadPickNavGraph(
             PlaceholderScreen(name = "내 서재 화면 (구현 예정)")
         }
 
-        // 마이페이지
-        composable(Screen.MyPage.route) {
-            PlaceholderScreen(name = "마이페이지 (구현 예정)")
-        }
 
         // 리뷰
         composable(Screen.Review.route) {

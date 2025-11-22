@@ -1,5 +1,5 @@
 package com.nextread.readpick.domain.repository
-
+import com.nextread.readpick.data.model.user.UserInfoDto
 /**
  * 인증 Repository 인터페이스
  *
@@ -25,4 +25,10 @@ interface AuthRepository {
      * TokenManager의 모든 데이터 삭제
      */
     suspend fun logout(): Result<Unit>
+
+    // 🚨🚨🚨 [Missing Override 해결] 이 함수가 AuthRepositoryImpl에 추가되어야 합니다. 🚨🚨🚨
+    suspend fun fetchUserProfile(): UserInfoDto
+
+    // 🚨 마이페이지 기능 추가
+    fun getUserInfo(): UserInfoDto? // 사용자 정보를 로컬에서 가져오는 함수 추가
 }
