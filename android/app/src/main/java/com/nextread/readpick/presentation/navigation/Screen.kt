@@ -39,4 +39,34 @@ sealed class Screen(val route: String) {
      * ADMIN 권한을 가진 사용자만 접근 가능
      */
     data object AdminDashboard : Screen("admin/dashboard")
+
+    // --------------------------------------------------------
+    // 커뮤니티 관련 화면
+    // --------------------------------------------------------
+
+    /**
+     * 커뮤니티 메인 화면
+     */
+    data object Community : Screen("community")
+
+    /**
+     * 게시물 상세 화면
+     * @param postId 게시물 ID
+     */
+    data object PostDetail : Screen("community/post/{postId}") {
+        fun createRoute(postId: Long) = "community/post/$postId"
+    }
+
+    /**
+     * 글쓰기 화면
+     */
+    data object WritePost : Screen("community/write")
+
+    /**
+     * 사용자 프로필 화면
+     * @param userId 사용자 ID
+     */
+    data object UserProfile : Screen("user/{userId}") {
+        fun createRoute(userId: Long) = "user/$userId"
+    }
 }

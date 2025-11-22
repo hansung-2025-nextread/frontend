@@ -39,6 +39,7 @@ fun HomeScreen(
     onMenuClick: () -> Unit,
     onChatbotClick: () -> Unit,
     onMyLibraryClick: () -> Unit,
+    onCommunityClick: () -> Unit,
     onMyPageClick: () -> Unit,
     onBookClick: (String) -> Unit // 책 클릭 시 ISBN13 전달
 ) {
@@ -67,6 +68,7 @@ fun HomeScreen(
                 onMenuClick = onMenuClick,
                 onChatbotClick = onChatbotClick,
                 onMyLibraryClick = onMyLibraryClick,
+                onCommunityClick = onCommunityClick,
                 onMyPageClick = onMyPageClick,
                 onBookClick = onBookClick
             )
@@ -87,6 +89,7 @@ private fun HomeScreenContent(
     onMenuClick: () -> Unit,
     onChatbotClick: () -> Unit,
     onMyLibraryClick: () -> Unit,
+    onCommunityClick: () -> Unit,
     onMyPageClick: () -> Unit,
     onBookClick: (String) -> Unit
 ) {
@@ -100,6 +103,7 @@ private fun HomeScreenContent(
             HomeBottomNavigation(
                 onHomeClick = { /* 현재 화면 */ },
                 onMyLibraryClick = onMyLibraryClick,
+                onCommunityClick = onCommunityClick,
                 onMyPageClick = onMyPageClick
             )
         },
@@ -327,6 +331,7 @@ fun ChatbotFab(
 fun HomeBottomNavigation(
     onHomeClick: () -> Unit,
     onMyLibraryClick: () -> Unit,
+    onCommunityClick: () -> Unit,
     onMyPageClick: () -> Unit
 ) {
     Surface(
@@ -355,6 +360,12 @@ fun HomeBottomNavigation(
                 painter = painterResource(id = R.drawable.ic_library),
                 isSelected = false,
                 onClick = onMyLibraryClick
+            )
+            BottomNavItem(
+                label = "커뮤니티",
+                painter = painterResource(id = R.drawable.ic_community),
+                isSelected = false,
+                onClick = onCommunityClick
             )
             BottomNavItem(
                 label = "마이페이지",
@@ -420,6 +431,7 @@ fun HomeScreenPreview() {
             onMenuClick = {},
             onChatbotClick = {},
             onMyLibraryClick = {},
+            onCommunityClick = {},
             onMyPageClick = {},
             onBookClick = {}
         )

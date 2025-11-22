@@ -29,6 +29,7 @@ import kotlinx.serialization.Serializable
  */
 @Serializable
 data class LoginResponse(
+    val userId: Long,
     @SerialName("accessToken") val accessToken: String,  // 백엔드는 accessToken으로 반환
     val email: String,
     val name: String,

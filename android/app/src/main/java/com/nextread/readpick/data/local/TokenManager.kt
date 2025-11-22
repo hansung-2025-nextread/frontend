@@ -51,6 +51,7 @@ class TokenManager @Inject constructor(
     // Key 정의
     companion object {
         private val JWT_TOKEN_KEY = stringPreferencesKey("jwt_token")
+        private val USER_ID_KEY = stringPreferencesKey("user_id")
         private val USER_EMAIL_KEY = stringPreferencesKey("user_email")
         private val USER_NAME_KEY = stringPreferencesKey("user_name")
         private val USER_PICTURE_KEY = stringPreferencesKey("user_picture")
@@ -122,6 +123,7 @@ class TokenManager @Inject constructor(
     /**
      * 사용자 정보 저장
      *
+     * @param userId 사용자 ID
      * @param email 사용자 이메일
      * @param name 사용자 이름
      * @param picture 프로필 사진 URL
@@ -129,14 +131,16 @@ class TokenManager @Inject constructor(
      * 로그인 성공 시 함께 저장:
      * ```
      * tokenManager.saveUserInfo(
+     *     userId = loginResponse.userId,
      *     email = loginResponse.email,
      *     name = loginResponse.name,
      *     picture = loginResponse.picture
      * )
      * ```
      */
-    suspend fun saveUserInfo(email: String, name: String, picture: String? = null) {
+    suspend fun saveUserInfo(userId: Long, email: String, name: String, picture: String? = null) {
         context.dataStore.edit { preferences ->
+            preferences[USER_ID_KEY] = userId.toString()
             preferences[USER_EMAIL_KEY] = email
             preferences[USER_NAME_KEY] = name
             picture?.let { preferences[USER_PICTURE_KEY] = it }
@@ -171,6 +175,28 @@ class TokenManager @Inject constructor(
     fun getPicture(): String? {
         return runBlocking {
             context.dataStore.data.first()[USER_PICTURE_KEY]
+        }
+    }
+
+    /**
+     * 사용자 ID 조회 (동기)
+     *
+     * @return 사용자 ID 또는 null
+     */
+    fun getUserId(): Long? {
+        return runBlocking {
+            context.dataStore.data.first()[USER_ID_KEY]?.toLongOrNull()
+        }
+    }
+
+    /**
+     * 사용자 ID 조회 (비동기 Flow)
+     *
+     * @return 사용자 ID Flow
+     */
+    fun getUserIdFlow(): Flow<Long?> {
+        return context.dataStore.data.map { preferences ->
+            preferences[USER_ID_KEY]?.toLongOrNull()
         }
     }
 
