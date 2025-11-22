@@ -10,6 +10,7 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
@@ -30,6 +31,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.compose.AsyncImage
 import com.nextread.readpick.R
 import com.nextread.readpick.data.model.search.SearchBookDto
+import com.nextread.readpick.data.model.search.SearchLogDto
 import java.text.DecimalFormat
 
 @Composable
@@ -40,6 +42,8 @@ fun SearchScreen(
 ) {
     val query by viewModel.query.collectAsStateWithLifecycle()
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val searchHistory by viewModel.searchHistory.collectAsStateWithLifecycle()
+    val searchHistoryEnabled by viewModel.searchHistoryEnabled.collectAsStateWithLifecycle()
     val keyboardController = LocalSoftwareKeyboardController.current
 
     Scaffold(
@@ -62,10 +66,18 @@ fun SearchScreen(
         ) {
             when (val state = uiState) {
                 is SearchUiState.Idle -> {
-                    // 검색 전 초기 화면
-                    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                        Text(text = "검색어를 입력하고 책을 찾아보세요", color = Color.Gray)
-                    }
+                    // 검색 전 초기 화면 - 검색 기록 표시
+                    SearchHistorySection(
+                        searchHistory = searchHistory,
+                        searchHistoryEnabled = searchHistoryEnabled,
+                        onHistoryItemClick = { query ->
+                            viewModel.searchFromHistory(query)
+                            keyboardController?.hide()
+                        },
+                        onDeleteItem = viewModel::deleteSearchLog,
+                        onClearAll = viewModel::clearAllSearchHistory,
+                        onToggleSetting = viewModel::toggleSearchHistorySetting
+                    )
                 }
                 is SearchUiState.Loading -> {
                     Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
@@ -90,6 +102,140 @@ fun SearchScreen(
                     }
                 }
             }
+        }
+    }
+}
+
+/**
+ * 검색 기록 섹션
+ */
+@Composable
+fun SearchHistorySection(
+    searchHistory: List<SearchLogDto>,
+    searchHistoryEnabled: Boolean,
+    onHistoryItemClick: (String) -> Unit,
+    onDeleteItem: (Long) -> Unit,
+    onClearAll: () -> Unit,
+    onToggleSetting: () -> Unit
+) {
+    LazyColumn(
+        modifier = Modifier.fillMaxSize(),
+        contentPadding = PaddingValues(16.dp)
+    ) {
+        // 설정 토글
+        item {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(bottom = 16.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = "검색 기록 저장",
+                    style = MaterialTheme.typography.bodyMedium
+                )
+                Switch(
+                    checked = searchHistoryEnabled,
+                    onCheckedChange = { onToggleSetting() }
+                )
+            }
+        }
+
+        // 검색 기록이 있을 때만 헤더와 전체 삭제 버튼 표시
+        if (searchHistory.isNotEmpty()) {
+            item {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(bottom = 8.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = "최근 검색어",
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold
+                    )
+                    TextButton(onClick = onClearAll) {
+                        Text(
+                            text = "전체 삭제",
+                            color = Color.Gray
+                        )
+                    }
+                }
+            }
+
+            // 검색 기록 목록
+            items(searchHistory) { log ->
+                SearchHistoryItem(
+                    searchLog = log,
+                    onClick = { onHistoryItemClick(log.query) },
+                    onDelete = { onDeleteItem(log.id) }
+                )
+            }
+        } else {
+            // 검색 기록이 없을 때
+            item {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 32.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = "최근 검색 기록이 없습니다",
+                        color = Color.Gray
+                    )
+                }
+            }
+        }
+    }
+}
+
+/**
+ * 검색 기록 개별 항목
+ */
+@Composable
+fun SearchHistoryItem(
+    searchLog: SearchLogDto,
+    onClick: () -> Unit,
+    onDelete: () -> Unit
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(onClick = onClick)
+            .padding(vertical = 12.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Icon(
+            imageVector = Icons.Default.Refresh,
+            contentDescription = null,
+            tint = Color.Gray,
+            modifier = Modifier.size(20.dp)
+        )
+
+        Spacer(modifier = Modifier.width(12.dp))
+
+        Text(
+            text = searchLog.query,
+            modifier = Modifier.weight(1f),
+            style = MaterialTheme.typography.bodyMedium,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis
+        )
+
+        IconButton(
+            onClick = onDelete,
+            modifier = Modifier.size(24.dp)
+        ) {
+            Icon(
+                imageVector = Icons.Default.Close,
+                contentDescription = "삭제",
+                tint = Color.Gray,
+                modifier = Modifier.size(16.dp)
+            )
         }
     }
 }

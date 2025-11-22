@@ -3,8 +3,11 @@ package com.nextread.readpick.data.remote.api
 import com.nextread.readpick.data.model.book.BookDto
 import com.nextread.readpick.data.model.book.SavedBookPageResponse
 import com.nextread.readpick.data.model.common.ApiResponse
+import com.nextread.readpick.data.model.search.SearchLogDto
 import com.nextread.readpick.data.model.search.SearchRequest
 import com.nextread.readpick.data.model.search.SearchResponseData
+import com.nextread.readpick.data.model.user.SearchHistorySettingRequest
+import com.nextread.readpick.data.model.user.SearchHistorySettingResponse
 import retrofit2.http.*
 
 interface BookApi {
@@ -55,4 +58,38 @@ interface BookApi {
         @Query("page") page: Int = 0,
         @Query("size") size: Int = 100
     ): SavedBookPageResponse
+
+    /**
+     * 검색 기록 조회
+     */
+    @GET("v1/api/users/me/search-history")
+    suspend fun getSearchHistory(): ApiResponse<List<SearchLogDto>>
+
+    /**
+     * 검색 기록 단일 삭제
+     */
+    @DELETE("v1/api/users/me/search-history/{id}")
+    suspend fun deleteSearchLog(
+        @Path("id") id: Long
+    ): ApiResponse<Unit>
+
+    /**
+     * 검색 기록 전체 삭제
+     */
+    @DELETE("v1/api/users/me/search-history")
+    suspend fun clearAllSearchHistory(): ApiResponse<Unit>
+
+    /**
+     * 검색 기록 설정 조회
+     */
+    @GET("v1/api/users/me/settings/search-history")
+    suspend fun getSearchHistorySetting(): ApiResponse<SearchHistorySettingResponse>
+
+    /**
+     * 검색 기록 설정 변경
+     */
+    @PATCH("v1/api/users/me/settings/search-history")
+    suspend fun updateSearchHistorySetting(
+        @Body request: SearchHistorySettingRequest
+    ): ApiResponse<SearchHistorySettingResponse>
 }
