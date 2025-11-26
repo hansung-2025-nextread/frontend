@@ -55,11 +55,12 @@ class AuthRepositoryImpl @Inject constructor(
 
             // 4. 사용자 정보 저장
             tokenManager.saveUserInfo(
+                userId = loginData.userId,
                 email = loginData.email,
                 name = loginData.name,
                 picture = loginData.picture
             )
-            android.util.Log.d("AuthRepository", "💾 User info saved: ${loginData.name}, ${loginData.email}")
+            android.util.Log.d("AuthRepository", "💾 User info saved: id=${loginData.userId}, ${loginData.name}, ${loginData.email}")
 
             // 5. 사용자 역할 저장
             tokenManager.saveUserRole(loginData.role)

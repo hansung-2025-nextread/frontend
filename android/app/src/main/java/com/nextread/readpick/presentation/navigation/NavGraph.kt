@@ -19,6 +19,12 @@ import com.nextread.readpick.presentation.chatbot.ChatbotScreen
 // 🚨 [추가] SearchScreen import
 import com.nextread.readpick.presentation.search.SearchScreen
 
+// 커뮤니티 관련 Screen import
+import com.nextread.readpick.presentation.community.main.CommunityScreen
+import com.nextread.readpick.presentation.community.detail.PostDetailScreen
+import com.nextread.readpick.presentation.community.write.WritePostScreen
+import com.nextread.readpick.presentation.community.profile.UserProfileScreen
+
 /**
  * ReadPick 앱의 전체 Navigation Graph
  */
@@ -87,6 +93,10 @@ fun ReadPickNavGraph(
                 onMyLibraryClick = {
                     navController.navigate(Screen.MyLibrary.route)
                 },
+                // 🚨 [연결] 커뮤니티 화면으로 이동
+                onCommunityClick = {
+                    navController.navigate(Screen.Community.route)
+                },
                 // 🚨 [연결] 마이페이지 화면으로 이동 (Placeholder)
                 onMyPageClick = {
                     navController.navigate(Screen.MyPage.route)
@@ -152,6 +162,69 @@ fun ReadPickNavGraph(
                     navController.navigate(Screen.Login.route) {
                         popUpTo(0) { inclusive = true }
                     }
+                }
+            )
+        }
+
+        // --------------------------------------------------------
+        // 커뮤니티 관련 화면들
+        // --------------------------------------------------------
+
+        // 커뮤니티 메인
+        composable(Screen.Community.route) {
+            CommunityScreen(
+                onPostClick = { postId ->
+                    navController.navigate(Screen.PostDetail.createRoute(postId))
+                },
+                onWriteClick = {
+                    navController.navigate(Screen.WritePost.route)
+                },
+                onUserClick = { userId ->
+                    navController.navigate(Screen.UserProfile.createRoute(userId))
+                },
+                onBookClick = { isbn13 ->
+                    navController.navigate(Screen.BookDetail.createRoute(isbn13))
+                }
+            )
+        }
+
+        // 게시물 상세
+        composable(Screen.PostDetail.route) {
+            PostDetailScreen(
+                onBackClick = {
+                    navController.popBackStack()
+                },
+                onUserClick = { userId ->
+                    navController.navigate(Screen.UserProfile.createRoute(userId))
+                },
+                onBookClick = { isbn13 ->
+                    navController.navigate(Screen.BookDetail.createRoute(isbn13))
+                }
+            )
+        }
+
+        // 글쓰기
+        composable(Screen.WritePost.route) {
+            WritePostScreen(
+                onClose = {
+                    navController.popBackStack()
+                },
+                onPostCreated = { postId ->
+                    // 글쓰기 화면을 닫고 게시물 상세로 이동
+                    navController.popBackStack()
+                    navController.navigate(Screen.PostDetail.createRoute(postId))
+                }
+            )
+        }
+
+        // 사용자 프로필
+        composable(Screen.UserProfile.route) {
+            UserProfileScreen(
+                onBackClick = {
+                    navController.popBackStack()
+                },
+                onPostClick = { postId ->
+                    navController.navigate(Screen.PostDetail.createRoute(postId))
                 }
             )
         }
