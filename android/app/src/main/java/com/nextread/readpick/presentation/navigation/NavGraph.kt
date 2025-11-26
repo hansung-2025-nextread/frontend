@@ -13,6 +13,8 @@ import com.nextread.readpick.presentation.admin.AdminDashboardScreen
 import com.nextread.readpick.presentation.auth.login.LoginScreen
 import com.nextread.readpick.presentation.home.HomeScreen
 import com.nextread.readpick.presentation.onboarding.OnboardingScreen
+import com.nextread.readpick.presentation.chatbot.ChatbotScreen
+
 
 // 🚨 [추가] SearchScreen import
 import com.nextread.readpick.presentation.search.SearchScreen
@@ -23,7 +25,7 @@ import com.nextread.readpick.presentation.search.SearchScreen
 @Composable
 fun ReadPickNavGraph(
     navController: NavHostController,
-    startDestination: String = Screen.Login.route
+    startDestination: String = Screen.Chatbot.route
 ) {
     NavHost(
         navController = navController,
@@ -125,7 +127,7 @@ fun ReadPickNavGraph(
 
         // 챗봇
         composable(Screen.Chatbot.route) {
-            PlaceholderScreen(name = "챗봇 화면 (구현 예정)")
+            ChatbotScreen()
         }
 
         // 내 서재
