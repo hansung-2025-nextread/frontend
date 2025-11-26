@@ -3,6 +3,7 @@ package com.nextread.readpick.di
 import com.jakewharton.retrofit2.converter.kotlinx.serialization.asConverterFactory
 import com.nextread.readpick.data.remote.api.AdminApi
 import com.nextread.readpick.data.remote.api.BookApi
+import com.nextread.readpick.data.remote.api.ChatbotApi
 import com.nextread.readpick.data.remote.api.CommunityApi
 import com.nextread.readpick.data.remote.interceptor.AuthInterceptor
 import com.nextread.readpick.data.remote.interceptor.LoggingInterceptorProvider
@@ -16,6 +17,8 @@ import okhttp3.OkHttpClient
 import retrofit2.Retrofit
 import java.util.concurrent.TimeUnit
 import javax.inject.Singleton
+
+private fun Retrofit.create(service: Any) {}
 
 /**
  * 네트워크 관련 의존성 주입 모듈
@@ -156,6 +159,10 @@ object NetworkModule {
         return retrofit.create(AdminApi::class.java)
     }
 
+    @Provides
+    @Singleton
+    fun provideChatApi(retrofit: Retrofit): ChatbotApi {
+        return retrofit.create(ChatbotApi::class.java)
     /**
      * CommunityApi 제공
      *
