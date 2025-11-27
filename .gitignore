@@ -4,3 +4,7 @@ nextread-docs/
 
 # Android는 포함
 !android/
+
+# IDE 설정 파일
+.idea/
+.DS_Store
