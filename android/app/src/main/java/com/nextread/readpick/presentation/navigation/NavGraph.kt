@@ -24,6 +24,11 @@ import com.nextread.readpick.presentation.community.detail.PostDetailScreen
 import com.nextread.readpick.presentation.community.write.WritePostScreen
 import com.nextread.readpick.presentation.community.profile.UserProfileScreen
 
+// 내 서재 Import
+import com.nextread.readpick.presentation.collection.CollectionScreen // 🚨 CollectionScreen 추가
+import com.nextread.readpick.presentation.collection.CollectionCreateScreen // 🚨 CollectionCreateScreen 추가
+import com.nextread.readpick.presentation.collection.CollectionSelectBookScreen // 🚨 CollectionSelectBookScreen 추가
+
 /**
  * ReadPick 앱의 전체 Navigation Graph
  */
@@ -124,6 +129,65 @@ fun ReadPickNavGraph(
         }
 
         // --------------------------------------------------------
+        // 🚨 5. 내 서재 (MyLibrary / Collection Screen)
+        // --------------------------------------------------------
+        composable(Screen.MyLibrary.route) {
+            CollectionScreen(
+                onNavigateToHome = {
+                    navController.navigate(Screen.Home.route) {
+                        popUpTo(Screen.Home.route) { inclusive = false }
+                        launchSingleTop = true
+                    }
+                },
+                onNavigateToCollection = { /* 현재 화면 */ },
+                onNavigateToMyPage = {
+                    navController.navigate(Screen.MyPage.route) {
+                        popUpTo(Screen.Home.route) { inclusive = false }
+                        launchSingleTop = true
+                    }
+                },
+                onNavigateToSearch = { navController.navigate(Screen.Search.route) },
+                // 컬렉션 만들기 1단계로 이동
+                onNavigateToCollectionCreate = {
+                    navController.navigate(Screen.CollectionCreate.route)
+                },
+                // 컬렉션 상세로 이동
+                onNavigateToCollectionDetail = { collectionId ->
+                    navController.navigate(Screen.CollectionDetail.createRoute(collectionId))
+                }
+            )
+        }
+
+        // --------------------------------------------------------
+        // 🚨 6. 컬렉션 만들기 1단계 (이름 입력)
+        // --------------------------------------------------------
+        composable(Screen.CollectionCreate.route) {
+            CollectionCreateScreen(
+                onDismiss = { navController.popBackStack() },
+                // 2단계 (도서 선택) 화면으로 이동
+                onNext = { name ->
+                    navController.navigate(Screen.CollectionSelectBook.createRoute(name))
+                }
+            )
+        }
+
+        // --------------------------------------------------------
+        // 🚨 7. 컬렉션 만들기 2단계 (도서 선택)
+        // --------------------------------------------------------
+        composable(Screen.CollectionSelectBook.route) { backStackEntry ->
+            val collectionName = backStackEntry.arguments?.getString("collectionName") ?: "새 책장"
+            CollectionSelectBookScreen(
+                collectionName = collectionName,
+                onDismiss = { navController.popBackStack() },
+                // 완료 시 (API 호출 후) 내 서재 메인 화면으로 복귀
+                onComplete = { _, _ ->
+                    // TODO: API 호출 로직은 ViewModel로 이동 예정
+                    navController.popBackStack(Screen.MyLibrary.route, inclusive = false)
+                }
+            )
+        }
+
+        // --------------------------------------------------------
         // 🚨 5. 마이페이지 (MyPage Screen) - 구현된 화면으로 교체
         // --------------------------------------------------------
         composable(Screen.MyPage.route) {
@@ -180,10 +244,6 @@ fun ReadPickNavGraph(
             PlaceholderScreen(name = "챗봇 화면 (구현 예정)")
         }
 
-        // 내 서재
-        composable(Screen.MyLibrary.route) {
-            PlaceholderScreen(name = "내 서재 화면 (구현 예정)")
-        }
 
 
         // 리뷰

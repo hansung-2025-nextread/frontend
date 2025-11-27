@@ -363,7 +363,7 @@ fun HomeBottomNavigation(
             )
             BottomNavItem(
                 label = "커뮤니티",
-                painter = painterResource(id = R.drawable.ic_community),
+                painter = painterResource(id = R.drawable.ic_menu),
                 isSelected = false,
                 onClick = onCommunityClick
             )

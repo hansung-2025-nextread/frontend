@@ -32,7 +32,33 @@ sealed class Screen(val route: String) {
     data object Review : Screen("review")
     data object MyPage : Screen("mypage")
 
+    // 🚨 [추가] 내 서재 메인 화면
     data object MyLibrary : Screen("mylibrary")
+
+    // --------------------------------------------------------
+    // 🚨 [추가] 컬렉션(내 책장) 만들기 관련 화면
+    // --------------------------------------------------------
+
+    /**
+     * 컬렉션 만들기 1단계: 이름 입력 화면
+     */
+    data object CollectionCreate : Screen("collection_create")
+
+    /**
+     * 컬렉션 만들기 2단계: 도서 선택 화면
+     * @param collectionName 1단계에서 입력한 컬렉션 이름
+     */
+    data object CollectionSelectBook : Screen("collection_select_book/{collectionName}") {
+        fun createRoute(name: String) = "collection_select_book/$name"
+    }
+
+    /**
+     * 컬렉션 상세 화면
+     * @param collectionId 컬렉션 고유 ID
+     */
+    data object CollectionDetail : Screen("collection_detail/{collectionId}") {
+        fun createRoute(id: Long) = "collection_detail/$id"
+    }
 
     /**
      * 관리자 대시보드 화면
