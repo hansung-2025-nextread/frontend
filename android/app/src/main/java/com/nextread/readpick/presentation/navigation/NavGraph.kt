@@ -23,6 +23,10 @@ import com.nextread.readpick.presentation.community.detail.PostDetailScreen
 import com.nextread.readpick.presentation.community.write.WritePostScreen
 import com.nextread.readpick.presentation.community.profile.UserProfileScreen
 
+// 챗봇 관련 Screen import
+import com.nextread.readpick.presentation.chatbot.sessionlist.ChatbotSessionListScreen
+import com.nextread.readpick.presentation.chatbot.chat.ChatScreen
+
 /**
  * ReadPick 앱의 전체 Navigation Graph
  */
@@ -83,9 +87,9 @@ fun ReadPickNavGraph(
                 onSearchClick = {
                     navController.navigate(Screen.Search.route)
                 },
-                // 🚨 [연결] 챗봇 화면으로 이동 (Placeholder)
+                // 🚨 [연결] 챗봇 화면으로 이동
                 onChatbotClick = {
-                    navController.navigate(Screen.Chatbot.route)
+                    navController.navigate(Screen.ChatbotSessionList.route)
                 },
                 // 🚨 [연결] 내 서재 화면으로 이동 (Placeholder)
                 onMyLibraryClick = {
@@ -133,9 +137,34 @@ fun ReadPickNavGraph(
             PlaceholderScreen(name = "도서 상세 화면\nISBN: $isbn13")
         }
 
-        // 챗봇
-        composable(Screen.Chatbot.route) {
-            PlaceholderScreen(name = "챗봇 화면 (구현 예정)")
+        // 챗봇 세션 목록 화면
+        composable(Screen.ChatbotSessionList.route) {
+            ChatbotSessionListScreen(
+                onBackClick = {
+                    navController.popBackStack()
+                },
+                onSessionClick = { sessionId ->
+                    navController.navigate(Screen.Chat.createRoute(sessionId))
+                }
+            )
+        }
+
+        // 챗봇 채팅 화면
+        composable(Screen.Chat.route) { backStackEntry ->
+            val sessionId = backStackEntry.arguments?.getString("sessionId")?.toLongOrNull()
+            if (sessionId != null) {
+                ChatScreen(
+                    onBackClick = {
+                        navController.popBackStack()
+                    },
+                    onBookClick = { isbn13 ->
+                        navController.navigate(Screen.BookDetail.createRoute(isbn13))
+                    }
+                )
+            } else {
+                // sessionId 없으면 에러 화면
+                PlaceholderScreen("세션 ID가 없습니다")
+            }
         }
 
         // 내 서재
