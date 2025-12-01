@@ -1,6 +1,5 @@
 package com.nextread.readpick.presentation.home
 
-
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyRow
@@ -14,7 +13,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
@@ -26,6 +24,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.compose.AsyncImage
 import com.nextread.readpick.R
 import com.nextread.readpick.data.model.book.BookDto
+import com.nextread.readpick.presentation.common.component.ReadPickBottomNavigation
 
 /**
  * 메인 HomeScreen Composable (ViewModel과 상태 관리)
@@ -100,7 +99,8 @@ private fun HomeScreenContent(
             )
         },
         bottomBar = {
-            HomeBottomNavigation(
+            ReadPickBottomNavigation(
+                currentRoute = "home",
                 onHomeClick = { /* 현재 화면 */ },
                 onMyLibraryClick = onMyLibraryClick,
                 onCommunityClick = onCommunityClick,
@@ -323,92 +323,6 @@ fun ChatbotFab(
         )
     }
 }
-
-/**
- * 하단 네비게이션 바
- */
-@Composable
-fun HomeBottomNavigation(
-    onHomeClick: () -> Unit,
-    onMyLibraryClick: () -> Unit,
-    onCommunityClick: () -> Unit,
-    onMyPageClick: () -> Unit
-) {
-    Surface(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 8.dp),
-        shape = RoundedCornerShape(30.dp),
-        color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f),
-        shadowElevation = 2.dp
-    ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(vertical = 12.dp),
-            horizontalArrangement = Arrangement.SpaceEvenly,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            BottomNavItem(
-                label = "홈",
-                painter = painterResource(id = R.drawable.ic_home),
-                isSelected = true,
-                onClick = onHomeClick
-            )
-            BottomNavItem(
-                label = "내 서재",
-                painter = painterResource(id = R.drawable.ic_library),
-                isSelected = false,
-                onClick = onMyLibraryClick
-            )
-            BottomNavItem(
-                label = "커뮤니티",
-                painter = painterResource(id = R.drawable.ic_menu),
-                isSelected = false,
-                onClick = onCommunityClick
-            )
-            BottomNavItem(
-                label = "마이페이지",
-                painter = painterResource(id = R.drawable.ic_mypage),
-                isSelected = false,
-                onClick = onMyPageClick
-            )
-        }
-    }
-}
-
-/**
- * 하단 네비게이션 아이템 (Painter - drawable 리소스 사용)
- */
-@Composable
-fun BottomNavItem(
-    label: String,
-    painter: Painter,
-    isSelected: Boolean,
-    onClick: () -> Unit
-) {
-    Column(
-        modifier = Modifier
-            .clip(RoundedCornerShape(12.dp))
-            .clickable(onClick = onClick)
-            .padding(horizontal = 12.dp, vertical = 4.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center // 👈 Crash 수정된 부분
-    ) {
-        Icon(
-            painter = painter,
-            contentDescription = label,
-            tint = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
-        )
-        Text(
-            text = label,
-            style = MaterialTheme.typography.bodySmall,
-            color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
-            fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal
-        )
-    }
-}
-
 
 /**
  * UI 확인용 Preview

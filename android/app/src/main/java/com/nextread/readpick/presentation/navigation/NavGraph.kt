@@ -151,6 +151,7 @@ fun ReadPickNavGraph(
                 onNavigateToCollectionCreate = {
                     navController.navigate(Screen.CollectionCreate.route)
                 },
+                onCommunityClick = {},
                 // 컬렉션 상세로 이동
                 onNavigateToCollectionDetail = { collectionId ->
                     navController.navigate(Screen.CollectionDetail.createRoute(collectionId))
@@ -202,9 +203,6 @@ fun ReadPickNavGraph(
                 onNavigateToReviews = {
                     navController.navigate(Screen.Review.route)
                 },
-                // 메뉴: 검색 기록 삭제 (이동 필요 없음, ViewModel에서 처리)
-                onNavigateToSearchHistory = { /* ViewModel에서 처리, 네비게이션 없음 */ },
-
                 // BottomNav: 홈 화면으로 이동
                 onNavigateToHome = {
                     navController.navigate(Screen.Home.route) {

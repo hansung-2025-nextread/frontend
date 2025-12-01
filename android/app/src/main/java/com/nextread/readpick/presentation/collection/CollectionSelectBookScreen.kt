@@ -14,39 +14,57 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.layout.ContentScale // 🚨🚨🚨 이 줄을 추가합니다. 🚨🚨🚨q
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.nextread.readpick.R
-import com.nextread.readpick.presentation.collection.components.ShelfBookDto // 🚨 Book DTO 재사용
+import com.nextread.readpick.presentation.collection.components.FavoriteBookDto
 import com.nextread.readpick.ui.theme.NextReadTheme
-import com.nextread.readpick.presentation.collection.CollectionCreateScreen // 🚨 CollectionCreateScreen 참조
 
-// 임시 데이터 클래스 (선택 상태 포함)
+/**
+ * 선택 가능한 책 데이터 클래스
+ *
+ * 컬렉션에 추가할 책을 선택하기 위한 래퍼 클래스
+ *
+ * @param book 즐겨찾기한 책 정보
+ * @param isSelected 현재 선택된 상태 여부
+ */
 data class SelectableBook(
-    val book: ShelfBookDto,
+    val book: FavoriteBookDto,
     val isSelected: Boolean = false
 )
 
+/**
+ * 컬렉션 생성 2단계: 책 선택 화면
+ *
+ * 내 서재(즐겨찾기)의 책들 중에서 새로운 컬렉션에 추가할 책을 선택합니다.
+ *
+ * @param collectionName 1단계에서 입력한 컬렉션 이름
+ * @param onDismiss 닫기 버튼 클릭 시 호출
+ * @param onComplete 완료 버튼 클릭 시 호출 (컬렉션 이름, 선택된 책 ISBN 목록 전달)
+ * @param modifier Modifier
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CollectionSelectBookScreen(
-    collectionName: String, // 1단계에서 넘어온 컬렉션 이름
+    collectionName: String,
     onDismiss: () -> Unit,
-    onComplete: (name: String, selectedIsbns: List<String>) -> Unit, // 완료 콜백
-    modifier: Modifier = Modifier,
-    // viewModel: CollectionViewModel = hiltViewModel() // ViewModel 연동 예정
+    onComplete: (name: String, selectedIsbns: List<String>) -> Unit,
+    modifier: Modifier = Modifier
+    // TODO: ViewModel 연동 필요
+    // viewModel: CollectionViewModel = hiltViewModel()
 ) {
-    // 💡 ViewModel에서 가져온 전체 책 목록 상태
+    // TODO: ViewModel에서 내 서재(즐겨찾기)의 전체 책 목록 가져오기
     // 현재는 더미 데이터로 대체
     val initialBooks = remember {
         List(10) {
-            ShelfBookDto(
+            FavoriteBookDto(
                 isbn13 = "978-00611200${it}",
                 title = "책 제목 ${it + 1}",
-                coverUrl = "",
+                author = "저자 ${it + 1}",
+                coverUrl = ""
             )
         }
     }
@@ -130,6 +148,14 @@ fun CollectionSelectBookScreen(
     }
 }
 
+/**
+ * 선택 가능한 책 아이템
+ *
+ * 책 표지, 제목, 저자와 함께 체크박스를 표시하여 선택할 수 있도록 합니다.
+ *
+ * @param sBook 선택 가능한 책 정보
+ * @param onSelect 책 선택/해제 시 호출되는 콜백 (ISBN, 선택 상태)
+ */
 @Composable
 fun SelectableBookItem(
     sBook: SelectableBook,
@@ -147,8 +173,9 @@ fun SelectableBookItem(
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             // 책 표지
+            // TODO: AsyncImage로 실제 책 표지 로드
             Image(
-                painter = painterResource(id = R.drawable.ic_menu), // 임시 Placeholder
+                painter = painterResource(id = R.drawable.ic_menu),
                 contentDescription = book.title,
                 modifier = Modifier
                     .size(40.dp, 60.dp)
@@ -166,7 +193,14 @@ fun SelectableBookItem(
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
                 )
-                // 여기에 저자나 다른 정보 추가 가능
+                Spacer(modifier = Modifier.height(4.dp))
+                Text(
+                    text = book.author,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
             }
         }
 

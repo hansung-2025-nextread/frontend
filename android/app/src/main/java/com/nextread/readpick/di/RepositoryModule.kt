@@ -10,9 +10,8 @@ import com.nextread.readpick.domain.repository.AuthRepository
 import com.nextread.readpick.domain.repository.BookRepository
 import com.nextread.readpick.domain.repository.CommunityRepository
 import com.nextread.readpick.domain.repository.OnboardingRepository
-import com.nextread.readpick.data.remote.api.CollectionApi // 🚨 추가
-import com.nextread.readpick.data.repository.CollectionRepository // 🚨 추가
 import com.nextread.readpick.data.repository.CollectionRepositoryImpl // 🚨 추가
+import com.nextread.readpick.domain.repository.CollectionRepository
 import dagger.Binds
 import dagger.Module
 import dagger.hilt.InstallIn
@@ -115,6 +114,8 @@ abstract class RepositoryModule {
     abstract fun bindCollectionRepository(
         collectionRepositoryImpl: CollectionRepositoryImpl
     ): CollectionRepository
+
+
 
     // 🚨 @Provides 함수들을 위한 companion object 또는 별도의 @Module 클래스가 필요합니다.
     // 현재 @Binds 모듈 외부에 @Provides를 정의할 클래스가 필요합니다.

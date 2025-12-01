@@ -27,7 +27,6 @@ fun MyPageScreen(
     viewModel: MyPageViewModel = hiltViewModel(),
     onNavigateToLogin: () -> Unit,
     onNavigateToReviews: () -> Unit,
-    onNavigateToSearchHistory: () -> Unit,
     onNavigateToHome: () -> Unit,
     onNavigateToCollection: () -> Unit,
     onNavigateToMyPage: () -> Unit
@@ -62,9 +61,9 @@ fun MyPageScreen(
         userEmail = userEmail,
         onLogoutClick = viewModel::onLogoutClick,
         onReviewsClick = onNavigateToReviews,
-        onDeleteSearchHistoryClick = viewModel::onDeleteSearchHistory,
         onNavigateToHome = onNavigateToHome,
         onNavigateToCollection = onNavigateToCollection,
+        onCommunityClick = {},
         onNavigateToMyPage = onNavigateToMyPage
     )
 }
@@ -80,9 +79,9 @@ private fun MyPageContent(
     userEmail: String,
     onLogoutClick: () -> Unit,
     onReviewsClick: () -> Unit,
-    onDeleteSearchHistoryClick: () -> Unit,
     onNavigateToHome: () -> Unit,
     onNavigateToCollection: () -> Unit,
+    onCommunityClick: () -> Unit,
     onNavigateToMyPage: () -> Unit
 ) {
     Scaffold(
@@ -94,6 +93,7 @@ private fun MyPageContent(
                 currentRoute = "mypage",
                 onHomeClick = onNavigateToHome,
                 onMyLibraryClick = onNavigateToCollection,
+                onCommunityClick = onCommunityClick,
                 onMyPageClick = onNavigateToMyPage
             )
         }
@@ -122,10 +122,6 @@ private fun MyPageContent(
 
                 // 내가 작성한 리뷰 보기
                 MyPageMenuItem(text = "내가 작성한 리뷰 보기", onClick = onReviewsClick)
-                Divider(thickness = 0.5.dp)
-
-                // 검색 기록 삭제
-                MyPageMenuItem(text = "검색 기록 삭제", onClick = onDeleteSearchHistoryClick)
                 Divider(thickness = 0.5.dp)
             }
         }
@@ -169,8 +165,8 @@ fun MyPageScreenPreview() {
             userEmail = "이메일",
             onLogoutClick = {},
             onReviewsClick = {},
-            onDeleteSearchHistoryClick = {},
             onNavigateToHome = {},
+            onCommunityClick = {},
             onNavigateToCollection = {},
             onNavigateToMyPage = {}
         )

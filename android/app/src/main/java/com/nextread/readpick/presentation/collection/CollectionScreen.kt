@@ -14,7 +14,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import com.nextread.readpick.presentation.collection.components.BaseShelfContent
+import com.nextread.readpick.presentation.collection.components.MyLibraryContent
 import com.nextread.readpick.presentation.collection.components.MyCollectionContent
 import com.nextread.readpick.presentation.common.component.ReadPickBottomNavigation
 import com.nextread.readpick.ui.theme.NextReadTheme
@@ -22,28 +22,52 @@ import androidx.compose.material3.TabRowDefaults // 👈 M3의 TabRowDefaults를
 import androidx.compose.material3.TabRowDefaults.tabIndicatorOffset // 👈 M3의 tabIndicatorOffset을 임포트
 
 
-// 탭 정의
+/**
+ * 내 서재 탭 정의
+ *
+ * - MY_LIBRARY: 즐겨찾기한 모든 책을 보여주는 탭
+ * - MY_BOOKSHELF: 사용자가 직접 만든 컬렉션(책장) 목록을 보여주는 탭
+ */
 enum class CollectionTab(val title: String) {
-    BASE_SHELF("기본책장"),
-    MY_COLLECTION("내 책장")
+    MY_LIBRARY("내 서재"),      // 즐겨찾기한 모든 책
+    MY_BOOKSHELF("내 책장")     // 사용자 정의 컬렉션
 }
 
+/**
+ * 내 서재 메인 화면
+ *
+ * 두 가지 탭으로 구성:
+ * 1. 내 서재 탭: 사용자가 즐겨찾기한 모든 책을 그리드로 표시
+ * 2. 내 책장 탭: 사용자가 직접 만든 컬렉션 목록 표시
+ *
+ * @param onNavigateToHome 홈 화면으로 이동
+ * @param onNavigateToCollection 현재 화면 (내 서재) - 하단 네비게이션용
+ * @param onCommunityClick 커뮤니티 화면으로 이동
+ * @param onNavigateToMyPage 마이페이지로 이동
+ * @param onNavigateToSearch 검색 화면으로 이동
+ * @param onNavigateToCollectionCreate 새 컬렉션(책장) 만들기 화면으로 이동
+ * @param onNavigateToCollectionDetail 컬렉션 상세 화면으로 이동
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CollectionScreen(
-    // viewModel: CollectionViewModel = hiltViewModel(), // ViewModel 연동 시 사용
+    // TODO: ViewModel 연동 필요 - 즐겨찾기 책 목록 및 컬렉션 데이터 로드
+    // viewModel: CollectionViewModel = hiltViewModel(),
     onNavigateToHome: () -> Unit,
     onNavigateToCollection: () -> Unit,
+    onCommunityClick: () -> Unit,
     onNavigateToMyPage: () -> Unit,
     onNavigateToSearch: () -> Unit,
-    onNavigateToCollectionCreate: () -> Unit, // 새 컬렉션 생성 화면 이동
-    onNavigateToCollectionDetail: (collectionId: Long) -> Unit, // 컬렉션 상세 화면 이동
+    onNavigateToCollectionCreate: () -> Unit,
+    onNavigateToCollectionDetail: (collectionId: Long) -> Unit
 ) {
     // 현재 선택된 탭 상태
-    var selectedTab by remember { mutableStateOf(CollectionTab.BASE_SHELF) }
+    var selectedTab by remember { mutableStateOf(CollectionTab.MY_LIBRARY) }
 
-    // 임시 데이터 (ViewModel에서 로드 예정)
-    val hasCustomCollections = remember { mutableStateOf(true) } // 내 책장이 있는지 여부 (테스트용)
+    // TODO: ViewModel에서 실제 데이터로 교체 필요
+    // 임시 데이터 (테스트용)
+    val hasFavoriteBooks = remember { mutableStateOf(true) }     // 즐겨찾기 책 존재 여부
+    val hasCustomCollections = remember { mutableStateOf(true) }  // 사용자 컬렉션 존재 여부
 
     Scaffold(
         topBar = {
@@ -55,6 +79,7 @@ fun CollectionScreen(
             ReadPickBottomNavigation(
                 currentRoute = "mylibrary",
                 onHomeClick = onNavigateToHome,
+                onCommunityClick = onCommunityClick,
                 onMyLibraryClick = onNavigateToCollection, // 현재 화면
                 onMyPageClick = onNavigateToMyPage
             )
@@ -71,24 +96,30 @@ fun CollectionScreen(
                 onTabSelected = { selectedTab = it }
             )
 
-            // 탭 내용
+            // 탭별 컨텐츠
             Box(modifier = Modifier.fillMaxSize()) {
                 when (selectedTab) {
-                    CollectionTab.BASE_SHELF -> {
-                        // 기본 책장 (즐겨찾기 책 목록)
-                        BaseShelfContent(
-                            bookCount = 1, // 임시 데이터
-                            onFilterClick = { /* 필터 액션 */ },
-                            onEditClick = { /* 편집 액션 */ }
+                    CollectionTab.MY_LIBRARY -> {
+                        // 탭 1: 내 서재 - 즐겨찾기한 모든 책을 그리드로 표시
+                        MyLibraryContent(
+                            bookCount = 12, // TODO: ViewModel에서 실제 즐겨찾기 책 개수 가져오기
+                            onFilterClick = {
+                                // TODO: 필터 기능 구현 (장르별, 읽은 책/읽지 않은 책 등)
+                            },
+                            onEditClick = {
+                                // TODO: 편집 모드 진입 (즐겨찾기 해제, 컬렉션에 추가 등)
+                            }
                         )
                     }
-                    CollectionTab.MY_COLLECTION -> {
-                        // 내 책장 (사용자 정의 컬렉션 목록)
+                    CollectionTab.MY_BOOKSHELF -> {
+                        // 탭 2: 내 책장 - 사용자가 만든 컬렉션 목록 표시
                         MyCollectionContent(
                             hasCustomCollections = hasCustomCollections.value,
                             onMakeCollectionClick = onNavigateToCollectionCreate,
-                            onEditClick = { /* 편집 액션 */ },
-                            onCollectionClick = onNavigateToCollectionDetail // 상세 이동
+                            onEditClick = {
+                                // TODO: 컬렉션 편집 모드 (삭제, 순서 변경 등)
+                            },
+                            onCollectionClick = onNavigateToCollectionDetail
                         )
                     }
                 }
@@ -97,18 +128,27 @@ fun CollectionScreen(
     }
 }
 
+/**
+ * 내 서재 상단 앱 바
+ *
+ * - 제목: "내 서재"
+ * - 액션: 검색 버튼 (내 서재 내에서 책 검색)
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CollectionTopBar(onSearchClick: () -> Unit) {
     TopAppBar(
         title = {
-            Text("내 서재", style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.Bold))
+            Text(
+                text = "내 서재",
+                style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.Bold)
+            )
         },
         actions = {
             IconButton(onClick = onSearchClick) {
                 Icon(
                     imageVector = Icons.Default.Search,
-                    contentDescription = "검색"
+                    contentDescription = "내 서재에서 책 검색"
                 )
             }
         },
@@ -118,6 +158,11 @@ fun CollectionTopBar(onSearchClick: () -> Unit) {
     )
 }
 
+/**
+ * 내 서재 탭 바
+ *
+ * "내 서재" 탭과 "내 책장" 탭을 전환할 수 있는 탭 바
+ */
 @Composable
 fun CollectionTabBar(
     selectedTab: CollectionTab,
@@ -126,11 +171,10 @@ fun CollectionTabBar(
     val tabs = CollectionTab.values()
     Column {
         TabRow(
-            selectedTabIndex = selectedTab.ordinal, // indexOf 대신 ordinal 사용 (더 효율적)
+            selectedTabIndex = selectedTab.ordinal,
             modifier = Modifier.padding(horizontal = 16.dp),
             containerColor = MaterialTheme.colorScheme.background,
             indicator = { tabPositions ->
-                // 🚨🚨🚨 M3의 PrimaryIndicator를 사용하되, M2의 tabIndicatorOffset을 Modifier에 적용
                 TabRowDefaults.PrimaryIndicator(
                     modifier = Modifier.tabIndicatorOffset(tabPositions[selectedTab.ordinal]),
                     height = 2.dp,
@@ -142,13 +186,18 @@ fun CollectionTabBar(
                 Tab(
                     selected = tab == selectedTab,
                     onClick = { onTabSelected(tab) },
-                    text = { Text(tab.title, fontWeight = FontWeight.SemiBold) },
+                    text = {
+                        Text(
+                            text = tab.title,
+                            fontWeight = FontWeight.SemiBold
+                        )
+                    },
                     selectedContentColor = MaterialTheme.colorScheme.primary,
                     unselectedContentColor = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
         }
-        Divider() // Divider는 material3에서 가져온 것을 사용합니다.
+        Divider()
     }
 }
 
@@ -163,6 +212,7 @@ fun CollectionScreenPreview() {
             onNavigateToMyPage = {},
             onNavigateToSearch = {},
             onNavigateToCollectionCreate = {},
+            onCommunityClick = {},
             onNavigateToCollectionDetail = { _ -> }
         )
     }

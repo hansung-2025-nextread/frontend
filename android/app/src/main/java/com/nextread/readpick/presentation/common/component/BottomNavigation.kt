@@ -15,20 +15,28 @@ import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import com.nextread.readpick.R // R.drawable.ic_home, ic_library, ic_mypage 등을 사용하기 위함
+import com.nextread.readpick.R
 
 /**
- * 하단 네비게이션 바 - 공통 컴포넌트로 분리
+ * 하단 네비게이션 바 - 공통 컴포넌트
+ *
+ * 모든 화면에서 재사용 가능한 하단 네비게이션 바입니다.
+ * currentRoute를 통해 현재 선택된 탭을 표시합니다.
+ *
+ * @param currentRoute 현재 선택된 화면의 route (예: "home", "mylibrary", "community", "mypage")
+ * @param onHomeClick 홈 버튼 클릭 콜백
+ * @param onMyLibraryClick 내 서재 버튼 클릭 콜백
+ * @param onCommunityClick 커뮤니티 버튼 클릭 콜백
+ * @param onMyPageClick 마이페이지 버튼 클릭 콜백
  */
 @Composable
 fun ReadPickBottomNavigation(
-    // 현재 선택된 화면의 '경로' 또는 '탭'을 구분하는 식별자
     currentRoute: String,
     onHomeClick: () -> Unit,
     onMyLibraryClick: () -> Unit,
+    onCommunityClick: () -> Unit,
     onMyPageClick: () -> Unit
 ) {
-    // HomeScreen에서 가져온 Surface, Row 레이아웃 유지
     Surface(
         modifier = Modifier
             .fillMaxWidth()
@@ -44,21 +52,24 @@ fun ReadPickBottomNavigation(
             horizontalArrangement = Arrangement.SpaceEvenly,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            // Home
             BottomNavItem(
                 label = "홈",
                 painter = painterResource(id = R.drawable.ic_home),
-                isSelected = currentRoute == "home", // currentRoute를 통해 선택 상태 결정
+                isSelected = currentRoute == "home",
                 onClick = onHomeClick
             )
-            // 내 서재
             BottomNavItem(
                 label = "내 서재",
                 painter = painterResource(id = R.drawable.ic_library),
                 isSelected = currentRoute == "mylibrary",
                 onClick = onMyLibraryClick
             )
-            // 마이페이지
+            BottomNavItem(
+                label = "커뮤니티",
+                painter = painterResource(id = R.drawable.ic_community),
+                isSelected = currentRoute == "community",
+                onClick = onCommunityClick
+            )
             BottomNavItem(
                 label = "마이페이지",
                 painter = painterResource(id = R.drawable.ic_mypage),
@@ -69,12 +80,16 @@ fun ReadPickBottomNavigation(
     }
 }
 
-
 /**
- * 하단 네비게이션 아이템
+ * 하단 네비게이션 개별 아이템
+ *
+ * @param label 하단에 표시될 텍스트
+ * @param painter 아이콘 리소스 (Painter)
+ * @param isSelected 현재 선택된 상태 여부
+ * @param onClick 클릭 시 콜백
  */
 @Composable
-fun BottomNavItem(
+private fun BottomNavItem(
     label: String,
     painter: Painter,
     isSelected: Boolean,
