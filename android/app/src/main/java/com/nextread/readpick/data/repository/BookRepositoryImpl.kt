@@ -1,6 +1,7 @@
 package com.nextread.readpick.data.repository
 
 import android.util.Log
+import com.nextread.readpick.data.model.book.BookDetailDto
 import com.nextread.readpick.data.model.book.BookDto
 import com.nextread.readpick.data.model.book.SavedBookDto
 import com.nextread.readpick.data.model.search.SearchBookDto
@@ -16,22 +17,50 @@ class BookRepositoryImpl @Inject constructor(
 ) : BookRepository {
 
     /**
-     * 베스트셀러 목록 조회
-     * (서버 응답: data 자체가 List<BookDto>임)
+     * 전체 베스트셀러 목록 조회
      */
     override suspend fun getBestsellers(categoryId: Int?): Result<List<BookDto>> = runCatching {
-        // Log.d(TAG, "베스트셀러 조회 API 호출 (CategoryID: $categoryId)") // 필요 시 주석 해제
-
-        val response = bookApi.getBestsellers(category = categoryId)
+        val response = bookApi.getBestsellers(maxResults = 20)
 
         if (response.success && response.data != null) {
-            // 🚨 [확인됨] response.data가 이미 List이므로 바로 반환
             response.data
         } else {
             throw Exception(response.message ?: "베스트셀러를 불러올 수 없습니다")
         }
     }.onFailure { exception ->
         Log.e(TAG, "베스트셀러 조회 에러", exception)
+    }
+
+    /**
+     * 개인화 추천도서 조회
+     */
+    override suspend fun getPersonalizedRecommendations(limit: Int): Result<List<BookDto>> = runCatching {
+        val response = bookApi.getPersonalizedRecommendations(limit)
+
+        if (response.success && response.data != null) {
+            val bookDtos = response.data.books.map { bookDetail ->
+                mapBookDetailToBookDto(bookDetail)
+            }
+            bookDtos
+        } else {
+            throw Exception(response.message ?: "개인화 추천 조회 실패")
+        }
+    }.onFailure { exception ->
+        Log.e(TAG, "개인화 추천 조회 에러", exception)
+    }
+
+    /**
+     * BookDetailDto를 BookDto로 변환
+     */
+    private fun mapBookDetailToBookDto(detail: BookDetailDto): BookDto {
+        return BookDto(
+            isbn13 = detail.isbn13,
+            title = detail.title,
+            author = detail.author,
+            cover = detail.cover,
+            description = detail.description,
+            categoryName = detail.categoryIdList.firstOrNull()?.toString()
+        )
     }
 
     /**

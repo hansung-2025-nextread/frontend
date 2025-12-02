@@ -1,6 +1,7 @@
 package com.nextread.readpick.data.remote.api
 
 import com.nextread.readpick.data.model.book.BookDto
+import com.nextread.readpick.data.model.book.PersonalizedRecommendationResponse
 import com.nextread.readpick.data.model.book.SavedBookPageResponse
 import com.nextread.readpick.data.model.common.ApiResponse
 import com.nextread.readpick.data.model.search.SearchLogDto
@@ -13,14 +14,20 @@ import retrofit2.http.*
 interface BookApi {
 
     /**
-     * 베스트셀러 목록 조회
+     * 전체 베스트셀러 목록 조회
      */
-    @GET("v1/api/books/bestsellers")
+    @GET("v1/api/books/bestsellers/all")
     suspend fun getBestsellers(
-        @Query("page") page: Int = 1,
-        @Query("size") size: Int = 20,
-        @Query("categoryId") category: Int? = null,
+        @Query("maxResults") maxResults: Int = 20
     ): ApiResponse<List<BookDto>>
+
+    /**
+     * 개인화 추천도서 조회
+     */
+    @GET("v1/api/personalized/recommendations")
+    suspend fun getPersonalizedRecommendations(
+        @Query("limit") limit: Int = 15
+    ): ApiResponse<PersonalizedRecommendationResponse>
 
     /**
      * 도서 상세 조회
