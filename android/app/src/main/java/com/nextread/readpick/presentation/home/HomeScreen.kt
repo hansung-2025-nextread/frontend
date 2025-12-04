@@ -347,7 +347,7 @@ fun HomeTopBar(
     Surface(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 20.dp, vertical = 12.dp),
+            .padding(top = 30.dp, start = 20.dp, end = 20.dp, bottom = 12.dp),
         shape = RoundedCornerShape(20.dp),
         color = MaterialTheme.colorScheme.surface,
         shadowElevation = 2.dp,
