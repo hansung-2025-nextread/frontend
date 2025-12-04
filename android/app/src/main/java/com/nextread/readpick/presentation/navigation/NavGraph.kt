@@ -9,8 +9,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import androidx.navigation.navArgument
 import com.nextread.readpick.presentation.admin.AdminDashboardScreen
 import com.nextread.readpick.presentation.auth.login.LoginScreen
 import com.nextread.readpick.presentation.home.HomeScreen
@@ -19,6 +21,9 @@ import com.nextread.readpick.presentation.onboarding.OnboardingScreen
 // 🚨 [추가] SearchScreen import
 import com.nextread.readpick.presentation.search.SearchScreen
 import com.nextread.readpick.presentation.mypage.MyPageScreen
+
+// 카테고리 선택 Screen import
+import com.nextread.readpick.presentation.category.CategorySelectScreen
 
 // 컬렉션 관련 Screen import
 import com.nextread.readpick.presentation.collection.CollectionScreen
@@ -126,8 +131,21 @@ fun ReadPickNavGraph(
         // --------------------------------------------------------
         // 🚨 4. 검색 화면 (SearchScreen 연결)
         // --------------------------------------------------------
-        composable(Screen.Search.route) {
+        composable(
+            route = Screen.Search.route,
+            arguments = listOf(
+                navArgument("categoryId") {
+                    type = NavType.StringType
+                    nullable = true
+                    defaultValue = null
+                }
+            )
+        ) { backStackEntry ->
+            val categoryId = backStackEntry.arguments?.getString("categoryId")
+                ?.toLongOrNull()
+
             SearchScreen(
+                categoryId = categoryId,
                 // 뒤로가기 버튼 클릭 시
                 onBackClick = {
                     navController.popBackStack()
@@ -135,6 +153,20 @@ fun ReadPickNavGraph(
                 // 검색 결과에서 책 클릭 시 상세 화면으로 이동
                 onBookClick = { isbn13 ->
                     navController.navigate(Screen.BookDetail.createRoute(isbn13))
+                }
+            )
+        }
+
+        // --------------------------------------------------------
+        // 🚨 4. 카테고리 선택 화면
+        // --------------------------------------------------------
+        composable(Screen.CategorySelect.route) {
+            CategorySelectScreen(
+                onBackClick = {
+                    navController.popBackStack()
+                },
+                onCategorySelected = { categoryId ->
+                    navController.navigate(Screen.Search.createRoute(categoryId))
                 }
             )
         }

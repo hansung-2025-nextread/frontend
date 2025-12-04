@@ -198,18 +198,21 @@ class SearchViewModel @Inject constructor(
      * 초기 카테고리 설정 (네비게이션에서 전달받음)
      */
     fun setInitialCategory(categoryId: Long) {
+        android.util.Log.d(TAG, "setInitialCategory 호출됨 - categoryId: $categoryId")
         _selectedCategoryId.value = categoryId
         // 카테고리 이름 조회
         viewModelScope.launch {
             bookRepository.getAllCategories()
                 .onSuccess { categories ->
+                    android.util.Log.d(TAG, "카테고리 목록 조회 성공: ${categories.size}개")
                     val category = categories.find { it.id == categoryId }
+                    android.util.Log.d(TAG, "선택된 카테고리: ${category?.name}")
                     _selectedCategoryName.value = category?.name
                     // 자동으로 검색 실행
                     searchBooksByCategory()
                 }
                 .onFailure { exception ->
-                    android.util.Log.e("SearchViewModel", "카테고리 조회 실패", exception)
+                    android.util.Log.e(TAG, "카테고리 조회 실패", exception)
                 }
         }
     }
@@ -218,17 +221,20 @@ class SearchViewModel @Inject constructor(
      * 카테고리로 검색 (검색어 없이 베스트셀러 조회)
      */
     private fun searchBooksByCategory() {
+        android.util.Log.d(TAG, "searchBooksByCategory 호출됨")
         currentPage = 0
         allBooks.clear()
         hasMoreData = true
         _uiState.value = SearchUiState.Loading
 
         val categoryId = _selectedCategoryId.value ?: return
+        android.util.Log.d(TAG, "카테고리 ID로 베스트셀러 검색: $categoryId")
 
         viewModelScope.launch {
             // 카테고리별 베스트셀러 조회 API 사용
             bookRepository.getBestsellers(categoryId = categoryId.toInt())
                 .onSuccess { books ->
+                    android.util.Log.d(TAG, "베스트셀러 조회 성공: ${books.size}개")
                     // BookDto를 SearchBookDto로 변환
                     val searchBooks = books.map { book ->
                         SearchBookDto(
@@ -257,8 +263,10 @@ class SearchViewModel @Inject constructor(
                         isLoadingMore = false,
                         hasMoreData = hasMoreData
                     )
+                    android.util.Log.d(TAG, "UI 상태를 Success로 업데이트 완료")
                 }
                 .onFailure { exception ->
+                    android.util.Log.e(TAG, "베스트셀러 조회 실패", exception)
                     _uiState.value = SearchUiState.Error(
                         exception.message ?: "검색 중 오류가 발생했습니다."
                     )
@@ -274,5 +282,9 @@ class SearchViewModel @Inject constructor(
         _selectedCategoryName.value = null
         _query.value = ""
         _uiState.value = SearchUiState.Idle
+    }
+
+    companion object {
+        private const val TAG = "SearchViewModel"
     }
 }
