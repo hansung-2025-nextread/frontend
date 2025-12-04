@@ -4,13 +4,13 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
-import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
-import androidx.navigation.navArgument
 import com.nextread.readpick.presentation.admin.AdminDashboardScreen
 import com.nextread.readpick.presentation.auth.login.LoginScreen
 import com.nextread.readpick.presentation.home.HomeScreen
@@ -18,9 +18,15 @@ import com.nextread.readpick.presentation.onboarding.OnboardingScreen
 
 // 🚨 [추가] SearchScreen import
 import com.nextread.readpick.presentation.search.SearchScreen
+import com.nextread.readpick.presentation.mypage.MyPageScreen
 
-// 카테고리 선택 Screen import
-import com.nextread.readpick.presentation.category.CategorySelectScreen
+// 컬렉션 관련 Screen import
+import com.nextread.readpick.presentation.collection.CollectionScreen
+import com.nextread.readpick.presentation.collection.CollectionViewModel
+import com.nextread.readpick.presentation.collection.CollectionCreateScreen
+import com.nextread.readpick.presentation.collection.CollectionSelectBookScreen
+import com.nextread.readpick.presentation.collection.CollectionAddBookScreen
+import com.nextread.readpick.presentation.collection.detail.CollectionDetailScreen
 
 // 커뮤니티 관련 Screen import
 import com.nextread.readpick.presentation.community.main.CommunityScreen
@@ -86,13 +92,11 @@ fun ReadPickNavGraph(
         // 3. 홈 화면
         composable(Screen.Home.route) {
             HomeScreen(
+                onMenuClick = { /* TODO: 네비게이션 드로어 열기 */ },
+
                 // 🚨 [연결] 검색 화면으로 이동
                 onSearchClick = {
-                    navController.navigate(Screen.Search.createRoute())
-                },
-                // 🚨 [연결] 카테고리 선택 화면으로 이동
-                onMenuClick = {
-                    navController.navigate(Screen.CategorySelect.route)
+                    navController.navigate(Screen.Search.route)
                 },
                 // 🚨 [연결] 챗봇 화면으로 이동
                 onChatbotClick = {
@@ -120,21 +124,8 @@ fun ReadPickNavGraph(
         // --------------------------------------------------------
         // 🚨 4. 검색 화면 (SearchScreen 연결)
         // --------------------------------------------------------
-        composable(
-            route = Screen.Search.route,
-            arguments = listOf(
-                navArgument("categoryId") {
-                    type = NavType.StringType
-                    nullable = true
-                    defaultValue = null
-                }
-            )
-        ) { backStackEntry ->
-            val categoryId = backStackEntry.arguments?.getString("categoryId")
-                ?.toLongOrNull()
-
+        composable(Screen.Search.route) {
             SearchScreen(
-                categoryId = categoryId,
                 // 뒤로가기 버튼 클릭 시
                 onBackClick = {
                     navController.popBackStack()
@@ -147,21 +138,116 @@ fun ReadPickNavGraph(
         }
 
         // --------------------------------------------------------
-        // 🚨 5. 카테고리 선택 화면
+        // 🚨 5. 내 서재 (MyLibrary / Collection Screen)
         // --------------------------------------------------------
-        composable(Screen.CategorySelect.route) {
-            CategorySelectScreen(
-                onBackClick = {
-                    navController.popBackStack()
+        composable(Screen.MyLibrary.route) { backStackEntry ->
+            // CollectionViewModel을 이 backStackEntry 범위로 생성하여
+            // CollectionSelectBookScreen에서도 같은 ViewModel 인스턴스를 공유할 수 있도록 함
+            val viewModel: CollectionViewModel = hiltViewModel(backStackEntry)
+
+            CollectionScreen(
+                viewModel = viewModel,
+                onNavigateToHome = {
+                    navController.navigate(Screen.Home.route) {
+                        popUpTo(Screen.Home.route) { inclusive = false }
+                        launchSingleTop = true
+                    }
                 },
-                onCategorySelected = { categoryId ->
-                    navController.navigate(Screen.Search.createRoute(categoryId))
+                onNavigateToCollection = { /* 현재 화면 */ },
+                onNavigateToMyPage = {
+                    navController.navigate(Screen.MyPage.route) {
+                        popUpTo(Screen.Home.route) { inclusive = false }
+                        launchSingleTop = true
+                    }
+                },
+                onNavigateToSearch = { navController.navigate(Screen.Search.route) },
+                // 컬렉션 만들기 1단계로 이동
+                onNavigateToCollectionCreate = {
+                    navController.navigate(Screen.CollectionCreate.route)
+                },
+                onCommunityClick = {},
+                // 컬렉션 상세로 이동 (id와 name 모두 전달)
+                onNavigateToCollectionDetail = { collectionId, collectionName ->
+                    navController.navigate(Screen.CollectionDetail.createRoute(collectionId, collectionName))
                 }
             )
         }
 
         // --------------------------------------------------------
-        // 🚨 6. 기타 화면들 (Placeholder - 임시 화면)
+        // 🚨 6. 컬렉션 만들기 1단계 (이름 입력)
+        // --------------------------------------------------------
+        composable(Screen.CollectionCreate.route) {
+            CollectionCreateScreen(
+                onDismiss = { navController.popBackStack() },
+                // 2단계 (도서 선택) 화면으로 이동
+                onNext = { name ->
+                    navController.navigate(Screen.CollectionSelectBook.createRoute(name))
+                }
+            )
+        }
+
+        // --------------------------------------------------------
+        // 🚨 7. 컬렉션 만들기 2단계 (도서 선택)
+        // --------------------------------------------------------
+        composable(Screen.CollectionSelectBook.route) { backStackEntry ->
+            val collectionName = backStackEntry.arguments?.getString("collectionName") ?: "새 책장"
+
+            // 부모 화면(CollectionScreen)의 NavBackStackEntry를 얻어서 ViewModel 공유
+            val parentEntry = remember(backStackEntry) {
+                navController.getBackStackEntry(Screen.MyLibrary.route)
+            }
+
+            CollectionSelectBookScreen(
+                collectionName = collectionName,
+                parentEntry = parentEntry,
+                onDismiss = { navController.popBackStack() },
+                // 완료 시 내 서재 메인 화면으로 복귀
+                onComplete = {
+                    navController.popBackStack(Screen.MyLibrary.route, inclusive = false)
+                }
+            )
+        }
+
+        // --------------------------------------------------------
+        // 🚨 5. 마이페이지 (MyPage Screen) - 구현된 화면으로 교체
+        // --------------------------------------------------------
+        composable(Screen.MyPage.route) {
+            MyPageScreen(
+                // 메뉴: 로그아웃 성공 시 로그인 화면으로 이동
+                onNavigateToLogin = {
+                    navController.navigate(Screen.Login.route) {
+                        popUpTo(Screen.Home.route) { inclusive = true } // 홈 화면까지 모두 제거
+                    }
+                },
+                // 메뉴: 내가 작성한 리뷰 보기 화면으로 이동
+                onNavigateToReviews = {
+                    navController.navigate(Screen.Review.route)
+                },
+                // BottomNav: 홈 화면으로 이동
+                onNavigateToHome = {
+                    navController.navigate(Screen.Home.route) {
+                        popUpTo(Screen.Home.route) { inclusive = false } // Home으로 돌아가기
+                        launchSingleTop = true
+                    }
+                },
+                // BottomNav: 내 서재 화면으로 이동
+                onNavigateToCollection = {
+                    navController.navigate(Screen.MyLibrary.route) {
+                        popUpTo(Screen.Home.route) { inclusive = false }
+                        launchSingleTop = true
+                    }
+                },
+                // BottomNav: 현재 마이페이지를 다시 클릭
+                onNavigateToMyPage = {
+                    navController.navigate(Screen.MyPage.route) {
+                        launchSingleTop = true // 현재 화면이므로 싱글 탑으로 중복 쌓임 방지
+                    }
+                }
+            )
+        }
+
+        // --------------------------------------------------------
+        // 🚨 5. 기타 화면들 (Placeholder - 임시 화면)
         // 아직 구현되지 않은 화면을 클릭해도 앱이 죽지 않게 막아줍니다.
         // --------------------------------------------------------
 
@@ -201,15 +287,7 @@ fun ReadPickNavGraph(
             }
         }
 
-        // 내 서재
-        composable(Screen.MyLibrary.route) {
-            PlaceholderScreen(name = "내 서재 화면 (구현 예정)")
-        }
 
-        // 마이페이지
-        composable(Screen.MyPage.route) {
-            PlaceholderScreen(name = "마이페이지 (구현 예정)")
-        }
 
         // 리뷰
         composable(Screen.Review.route) {
@@ -286,6 +364,51 @@ fun ReadPickNavGraph(
                 },
                 onPostClick = { postId ->
                     navController.navigate(Screen.PostDetail.createRoute(postId))
+                }
+            )
+        }
+
+        // --------------------------------------------------------
+        // 컬렉션 상세 화면
+        // --------------------------------------------------------
+        composable(Screen.CollectionDetail.route) { backStackEntry ->
+            val collectionId = backStackEntry.arguments?.getString("collectionId")?.toLongOrNull() ?: 0L
+            val collectionName = backStackEntry.arguments?.getString("collectionName") ?: "내 책장"
+
+            CollectionDetailScreen(
+                collectionId = collectionId,
+                collectionName = collectionName,
+                onBackClick = {
+                    navController.popBackStack()
+                },
+                onAddBookClick = {
+                    // 책 추가 화면으로 이동
+                    navController.navigate(Screen.CollectionAddBook.createRoute(collectionId, collectionName))
+                },
+                onBookClick = { isbn13 ->
+                    navController.navigate(Screen.BookDetail.createRoute(isbn13))
+                }
+            )
+        }
+
+        // --------------------------------------------------------
+        // 컬렉션에 책 추가 화면
+        // --------------------------------------------------------
+        composable(Screen.CollectionAddBook.route) { backStackEntry ->
+            val collectionId = backStackEntry.arguments?.getString("collectionId")?.toLongOrNull() ?: 0L
+            val collectionName = backStackEntry.arguments?.getString("collectionName") ?: "내 책장"
+
+            // 부모 화면(CollectionScreen)의 NavBackStackEntry를 얻어서 ViewModel 공유
+            val parentEntry = remember(backStackEntry) {
+                navController.getBackStackEntry(Screen.MyLibrary.route)
+            }
+
+            CollectionAddBookScreen(
+                collectionId = collectionId,
+                collectionName = collectionName,
+                parentEntry = parentEntry,
+                onDismiss = {
+                    navController.popBackStack()
                 }
             )
         }

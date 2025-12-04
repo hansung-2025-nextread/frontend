@@ -101,4 +101,3 @@ hilt-android = { id = "com.google.dagger.hilt.android", version.ref = "hilt" }
 kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
 # Google Services - Firebase 설정
 google-services = { id = "com.google.gms.google-services", version = "4.4.2" }
-
