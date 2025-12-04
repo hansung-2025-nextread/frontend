@@ -1,6 +1,7 @@
 package com.nextread.readpick.presentation.home
 
-
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -129,8 +130,9 @@ private fun HomeScreenContent(
                 .padding(paddingValues)
                 .fillMaxSize()
                 .padding(horizontal = 24.dp)
+                .verticalScroll(rememberScrollState()) // 스크롤 추가
         ) {
-            Spacer(modifier = Modifier.height(20.dp))
+            Spacer(modifier = Modifier.height(12.dp))
 
             // 1. 검색창
             SearchTriggerBar(
@@ -184,15 +186,19 @@ fun PersonalizedRecommendationSection(
         )
 
         // 책 목록
-        LazyRow(
-            horizontalArrangement = Arrangement.spacedBy(20.dp),
-            contentPadding = PaddingValues(vertical = 4.dp)
-        ) {
-            items(books) { book ->
-                BookCoverItem(
-                    book = book,
-                    onBookClick = onBookClick
-                )
+        BoxWithConstraints {
+            val itemWidth = maxWidth / 2.5f
+            LazyRow(
+                horizontalArrangement = Arrangement.spacedBy(20.dp),
+                contentPadding = PaddingValues(vertical = 4.dp)
+            ) {
+                items(books) { book ->
+                    BookCoverItem(
+                        modifier = Modifier.width(itemWidth),
+                        book = book,
+                        onBookClick = onBookClick
+                    )
+                }
             }
         }
     }
@@ -233,15 +239,19 @@ fun BestsellerSection(
             }
         } else {
             // 책 목록을 가로 스크롤로 표시
-            LazyRow(
-                horizontalArrangement = Arrangement.spacedBy(20.dp),
-                contentPadding = PaddingValues(vertical = 4.dp)
-            ) {
-                items(books) { book ->
-                    BookCoverItem(
-                        book = book,
-                        onBookClick = onBookClick
-                    )
+            BoxWithConstraints {
+                val itemWidth = maxWidth / 2.5f
+                LazyRow(
+                    horizontalArrangement = Arrangement.spacedBy(20.dp),
+                    contentPadding = PaddingValues(vertical = 4.dp)
+                ) {
+                    items(books) { book ->
+                        BookCoverItem(
+                            modifier = Modifier.width(itemWidth),
+                            book = book,
+                            onBookClick = onBookClick
+                        )
+                    }
                 }
             }
         }
@@ -253,19 +263,19 @@ fun BestsellerSection(
  */
 @Composable
 fun BookCoverItem(
+    modifier: Modifier = Modifier,
     book: BookDto,
     onBookClick: (String) -> Unit
 ) {
     Column(
-        modifier = Modifier
-            .width(140.dp)
+        modifier = modifier
             .clickable { onBookClick(book.isbn13) },
         horizontalAlignment = Alignment.Start
     ) {
         // 책 표지 카드
         Card(
             modifier = Modifier
-                .width(140.dp)
+                .fillMaxWidth()
                 .height(200.dp),
             shape = RoundedCornerShape(16.dp),
             elevation = CardDefaults.cardElevation(
