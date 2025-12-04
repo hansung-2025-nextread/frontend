@@ -4,6 +4,7 @@ import android.util.Log
 import com.nextread.readpick.data.model.book.BookDetailDto
 import com.nextread.readpick.data.model.book.BookDto
 import com.nextread.readpick.data.model.book.SavedBookDto
+import com.nextread.readpick.data.model.category.CategoryDto
 import com.nextread.readpick.data.model.search.SearchBookDto
 import com.nextread.readpick.data.model.search.SearchLogDto
 import com.nextread.readpick.data.model.search.SearchPageResponse
@@ -19,12 +20,22 @@ class BookRepositoryImpl @Inject constructor(
 ) : BookRepository {
 
     /**
-     * 전체 베스트셀러 목록 조회
+     * 베스트셀러 목록 조회
+     * categoryId가 null이면 전체, 있으면 해당 카테고리 베스트셀러
      */
     override suspend fun getBestsellers(categoryId: Int?): Result<List<BookDto>> = runCatching {
-        val response = bookApi.getBestsellers(maxResults = 20)
+        Log.d(TAG, "베스트셀러 조회 API 호출 - categoryId: $categoryId")
+
+        val response = if (categoryId == null) {
+            // 전체 베스트셀러 조회
+            bookApi.getAllBestsellers(maxResults = 20)
+        } else {
+            // 카테고리별 베스트셀러 조회
+            bookApi.getBestsellersByCategory(categoryId = categoryId, maxResults = 20)
+        }
 
         if (response.success && response.data != null) {
+            Log.d(TAG, "베스트셀러 조회 성공: ${response.data.size}개")
             response.data
         } else {
             throw Exception(response.message ?: "베스트셀러를 불러올 수 없습니다")
@@ -224,6 +235,23 @@ class BookRepositoryImpl @Inject constructor(
         }
     }.onFailure { exception ->
         Log.e(TAG, "검색 기록 설정 변경 에러", exception)
+    }
+
+    /**
+     * 전체 카테고리 목록 조회
+     */
+    override suspend fun getAllCategories(): Result<List<CategoryDto>> = runCatching {
+        Log.d(TAG, "전체 카테고리 조회 API 호출")
+        val response = bookApi.getAllCategories()
+
+        if (response.success && response.data != null) {
+            Log.d(TAG, "카테고리 조회 성공: ${response.data.size}개")
+            response.data
+        } else {
+            throw Exception(response.message ?: "카테고리를 불러올 수 없습니다")
+        }
+    }.onFailure { exception ->
+        Log.e(TAG, "카테고리 조회 에러", exception)
     }
 
     companion object {

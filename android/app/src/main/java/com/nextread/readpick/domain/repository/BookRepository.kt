@@ -2,6 +2,7 @@ package com.nextread.readpick.domain.repository
 
 import com.nextread.readpick.data.model.book.BookDto
 import com.nextread.readpick.data.model.book.SavedBookDto
+import com.nextread.readpick.data.model.category.CategoryDto
 import com.nextread.readpick.data.model.search.SearchBookDto
 import com.nextread.readpick.data.model.search.SearchLogDto
 import com.nextread.readpick.data.model.search.SearchPageResponse
@@ -68,4 +69,9 @@ interface BookRepository {
      * 검색 기록 설정 변경
      */
     suspend fun updateSearchHistorySetting(enabled: Boolean): Result<Boolean>
+
+    /**
+     * 전체 카테고리 목록 조회
+     */
+    suspend fun getAllCategories(): Result<List<CategoryDto>>
 }

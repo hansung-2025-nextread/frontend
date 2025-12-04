@@ -30,6 +30,13 @@ class SearchViewModel @Inject constructor(
     private val _sortType = MutableStateFlow(SortType.ACCURACY)
     val sortType: StateFlow<SortType> = _sortType.asStateFlow()
 
+    // 선택된 카테고리 필터
+    private val _selectedCategoryId = MutableStateFlow<Long?>(null)
+    val selectedCategoryId: StateFlow<Long?> = _selectedCategoryId.asStateFlow()
+
+    private val _selectedCategoryName = MutableStateFlow<String?>(null)
+    val selectedCategoryName: StateFlow<String?> = _selectedCategoryName.asStateFlow()
+
     // 페이지네이션 상태
     private var currentPage = 0
     private var allBooks = mutableListOf<SearchBookDto>()
@@ -185,5 +192,87 @@ class SearchViewModel @Inject constructor(
     fun searchFromHistory(query: String) {
         _query.value = query
         searchBooks(reset = true)
+    }
+
+    /**
+     * 초기 카테고리 설정 (네비게이션에서 전달받음)
+     */
+    fun setInitialCategory(categoryId: Long) {
+        _selectedCategoryId.value = categoryId
+        // 카테고리 이름 조회
+        viewModelScope.launch {
+            bookRepository.getAllCategories()
+                .onSuccess { categories ->
+                    val category = categories.find { it.id == categoryId }
+                    _selectedCategoryName.value = category?.name
+                    // 자동으로 검색 실행
+                    searchBooksByCategory()
+                }
+                .onFailure { exception ->
+                    android.util.Log.e("SearchViewModel", "카테고리 조회 실패", exception)
+                }
+        }
+    }
+
+    /**
+     * 카테고리로 검색 (검색어 없이 베스트셀러 조회)
+     */
+    private fun searchBooksByCategory() {
+        currentPage = 0
+        allBooks.clear()
+        hasMoreData = true
+        _uiState.value = SearchUiState.Loading
+
+        val categoryId = _selectedCategoryId.value ?: return
+
+        viewModelScope.launch {
+            // 카테고리별 베스트셀러 조회 API 사용
+            bookRepository.getBestsellers(categoryId = categoryId.toInt())
+                .onSuccess { books ->
+                    // BookDto를 SearchBookDto로 변환
+                    val searchBooks = books.map { book ->
+                        SearchBookDto(
+                            title = book.title,
+                            isbn13 = book.isbn13,
+                            author = book.author,
+                            cover = book.cover,
+                            description = book.description,
+                            pubDate = null,
+                            publisher = null,
+                            priceSales = null,
+                            priceStandard = null,
+                            customerReviewRank = null,
+                            ratingScore = null,
+                            ratingCount = null,
+                            link = null,
+                            categoryIdList = listOf(categoryId.toInt())
+                        )
+                    }
+
+                    allBooks.addAll(searchBooks)
+                    hasMoreData = false  // 베스트셀러는 한 페이지만
+
+                    _uiState.value = SearchUiState.Success(
+                        books = allBooks.toList(),
+                        isLoadingMore = false,
+                        hasMoreData = hasMoreData
+                    )
+                }
+                .onFailure { exception ->
+                    _uiState.value = SearchUiState.Error(
+                        exception.message ?: "검색 중 오류가 발생했습니다."
+                    )
+                }
+        }
+    }
+
+    /**
+     * 카테고리 필터 해제
+     */
+    fun clearCategoryFilter() {
+        _selectedCategoryId.value = null
+        _selectedCategoryName.value = null
+        _query.value = ""
+        _uiState.value = SearchUiState.Idle
     }
 }

@@ -41,6 +41,7 @@ import java.text.DecimalFormat
 import androidx.compose.foundation.layout.statusBarsPadding
 @Composable
 fun SearchScreen(
+    categoryId: Long? = null,
     viewModel: SearchViewModel = hiltViewModel(),
     onBackClick: () -> Unit,
     onBookClick: (String) -> Unit // 책 상세로 이동
@@ -50,17 +51,27 @@ fun SearchScreen(
     val sortType by viewModel.sortType.collectAsStateWithLifecycle()
     val searchHistory by viewModel.searchHistory.collectAsStateWithLifecycle()
     val searchHistoryEnabled by viewModel.searchHistoryEnabled.collectAsStateWithLifecycle()
+    val selectedCategoryName by viewModel.selectedCategoryName.collectAsStateWithLifecycle()
     val keyboardController = LocalSoftwareKeyboardController.current
+
+    // 카테고리가 제공되면 자동으로 검색 초기화
+    LaunchedEffect(categoryId) {
+        if (categoryId != null) {
+            viewModel.setInitialCategory(categoryId)
+        }
+    }
 
     Scaffold(
         topBar = {
             SearchTopBar(
                 query = query,
+                selectedCategoryName = selectedCategoryName,
                 onQueryChange = viewModel::onQueryChange,
                 onSearch = {
                     viewModel.searchBooks()
                     keyboardController?.hide() // 검색 시 키보드 내림
                 },
+                onClearCategory = viewModel::clearCategoryFilter,
                 onBackClick = onBackClick
             )
         }
@@ -259,49 +270,78 @@ fun SearchHistoryItem(
 @Composable
 fun SearchTopBar(
     query: String,
+    selectedCategoryName: String?,
     onQueryChange: (String) -> Unit,
     onSearch: () -> Unit,
+    onClearCategory: () -> Unit,
     onBackClick: () -> Unit
 ) {
-    Row(
+    Column(
         modifier = Modifier
             .fillMaxWidth()
-            .statusBarsPadding() // <-- ADDED
-            .padding(horizontal = 4.dp, vertical = 8.dp),
-        verticalAlignment = Alignment.CenterVertically
+            .statusBarsPadding()
     ) {
-        IconButton(onClick = onBackClick) {
-            Icon(imageVector = Icons.Default.ArrowBack, contentDescription = "뒤로가기")
-        }
-
-        // 검색 입력창
-        TextField(
-            value = query,
-            onValueChange = onQueryChange,
-            placeholder = { Text("책 제목, 저자 검색") },
+        Row(
             modifier = Modifier
-                .weight(1f)
-                .padding(horizontal = 4.dp)
-                .clip(RoundedCornerShape(8.dp)),
-            colors = TextFieldDefaults.colors(
-                focusedIndicatorColor = Color.Transparent,
-                unfocusedIndicatorColor = Color.Transparent
-            ),
-            singleLine = true,
-            // 키보드 설정 (검색 버튼 표시)
-            keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
-            keyboardActions = KeyboardActions(onSearch = { onSearch() }),
-            trailingIcon = {
-                if (query.isNotEmpty()) {
-                    IconButton(onClick = { onQueryChange("") }) {
-                        Icon(imageVector = Icons.Default.Close, contentDescription = "지우기")
+                .fillMaxWidth()
+                .padding(horizontal = 4.dp, vertical = 8.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            IconButton(onClick = onBackClick) {
+                Icon(imageVector = Icons.Default.ArrowBack, contentDescription = "뒤로가기")
+            }
+
+            // 검색 입력창
+            TextField(
+                value = query,
+                onValueChange = onQueryChange,
+                placeholder = { Text("책 제목, 저자 검색") },
+                modifier = Modifier
+                    .weight(1f)
+                    .padding(horizontal = 4.dp)
+                    .clip(RoundedCornerShape(8.dp)),
+                colors = TextFieldDefaults.colors(
+                    focusedIndicatorColor = Color.Transparent,
+                    unfocusedIndicatorColor = Color.Transparent
+                ),
+                singleLine = true,
+                // 키보드 설정 (검색 버튼 표시)
+                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
+                keyboardActions = KeyboardActions(onSearch = { onSearch() }),
+                trailingIcon = {
+                    if (query.isNotEmpty()) {
+                        IconButton(onClick = { onQueryChange("") }) {
+                            Icon(imageVector = Icons.Default.Close, contentDescription = "지우기")
+                        }
                     }
                 }
-            }
-        )
+            )
 
-        IconButton(onClick = onSearch) {
-            Icon(imageVector = Icons.Default.Search, contentDescription = "검색")
+            IconButton(onClick = onSearch) {
+                Icon(imageVector = Icons.Default.Search, contentDescription = "검색")
+            }
+        }
+
+        // 카테고리 필터 칩
+        if (selectedCategoryName != null) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 8.dp, vertical = 4.dp)
+            ) {
+                FilterChip(
+                    selected = true,
+                    onClick = onClearCategory,
+                    label = { Text(selectedCategoryName) },
+                    trailingIcon = {
+                        Icon(
+                            imageVector = Icons.Default.Close,
+                            contentDescription = "필터 해제",
+                            modifier = Modifier.size(16.dp)
+                        )
+                    }
+                )
+            }
         }
     }
 }
