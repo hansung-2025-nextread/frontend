@@ -12,11 +12,14 @@ import com.nextread.readpick.domain.repository.BookRepository
 import com.nextread.readpick.domain.repository.ChatbotRepository
 import com.nextread.readpick.domain.repository.CommunityRepository
 import com.nextread.readpick.domain.repository.OnboardingRepository
+import com.nextread.readpick.data.repository.CollectionRepositoryImpl // 🚨 추가
+import com.nextread.readpick.domain.repository.CollectionRepository
 import dagger.Binds
 import dagger.Module
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
 import javax.inject.Singleton
+import retrofit2.Retrofit // 🚨 Retrofit 주입을 위해 필요하다고 가정
 
 /**
  * Repository 관련 의존성 주입 모듈
@@ -107,4 +110,16 @@ abstract class RepositoryModule {
     abstract fun bindChatbotRepository(
         chatbotRepositoryImpl: ChatbotRepositoryImpl
     ): ChatbotRepository
+
+    /**
+     * CollectionRepository 바인딩
+     *
+     * CollectionRepository 인터페이스를 요청하면
+     * CollectionRepositoryImpl 구현체를 제공
+     */
+    @Binds
+    @Singleton
+    abstract fun bindCollectionRepository(
+        collectionRepositoryImpl: CollectionRepositoryImpl
+    ): CollectionRepository
 }

@@ -4,6 +4,7 @@ import com.jakewharton.retrofit2.converter.kotlinx.serialization.asConverterFact
 import com.nextread.readpick.data.remote.api.AdminApi
 import com.nextread.readpick.data.remote.api.BookApi
 import com.nextread.readpick.data.remote.api.ChatbotApi
+import com.nextread.readpick.data.remote.api.CollectionApi
 import com.nextread.readpick.data.remote.api.CommunityApi
 import com.nextread.readpick.data.remote.interceptor.AuthInterceptor
 import com.nextread.readpick.data.remote.interceptor.LoggingInterceptorProvider
@@ -182,5 +183,18 @@ object NetworkModule {
     @Singleton
     fun provideChatbotApi(retrofit: Retrofit): ChatbotApi {
         return retrofit.create(ChatbotApi::class.java)
+    }
+
+    /**
+     * CollectionApi 제공
+     *
+     * 컬렉션(내 책장) 관련 API 인터페이스
+     * - 컬렉션 생성/조회/수정/삭제
+     * - 컬렉션에 책 추가/삭제
+     */
+    @Provides
+    @Singleton
+    fun provideCollectionApi(retrofit: Retrofit): CollectionApi {
+        return retrofit.create(CollectionApi::class.java)
     }
 }
