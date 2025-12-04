@@ -3,6 +3,7 @@ package com.nextread.readpick.data.remote.api
 import com.nextread.readpick.data.model.book.BookDto
 import com.nextread.readpick.data.model.book.PersonalizedRecommendationResponse
 import com.nextread.readpick.data.model.book.SavedBookPageResponse
+import com.nextread.readpick.data.model.category.CategoryDto
 import com.nextread.readpick.data.model.common.ApiResponse
 import com.nextread.readpick.data.model.search.SearchLogDto
 import com.nextread.readpick.data.model.search.SearchPageResponse
@@ -18,7 +19,16 @@ interface BookApi {
      * 전체 베스트셀러 목록 조회
      */
     @GET("v1/api/books/bestsellers/all")
-    suspend fun getBestsellers(
+    suspend fun getAllBestsellers(
+        @Query("maxResults") maxResults: Int = 20
+    ): ApiResponse<List<BookDto>>
+
+    /**
+     * 카테고리별 베스트셀러 목록 조회
+     */
+    @GET("v1/api/books/bestsellers")
+    suspend fun getBestsellersByCategory(
+        @Query("categoryId") categoryId: Int,
         @Query("maxResults") maxResults: Int = 20
     ): ApiResponse<List<BookDto>>
 
@@ -101,4 +111,10 @@ interface BookApi {
     suspend fun updateSearchHistorySetting(
         @Body request: SearchHistorySettingRequest
     ): ApiResponse<SearchHistorySettingResponse>
+
+    /**
+     * 전체 카테고리 목록 조회
+     */
+    @GET("v1/api/categories")
+    suspend fun getAllCategories(): ApiResponse<List<CategoryDto>>
 }

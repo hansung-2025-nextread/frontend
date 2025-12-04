@@ -24,8 +24,23 @@ sealed class Screen(val route: String) {
 
     /**
      * 검색 화면
+     * @param categoryId 선택한 카테고리 ID (옵션)
      */
-    data object Search : Screen("search")
+    data object Search : Screen("search?categoryId={categoryId}") {
+        fun createRoute(categoryId: Long? = null): String {
+            return if (categoryId != null) {
+                "search?categoryId=$categoryId"
+            } else {
+                "search"
+            }
+        }
+    }
+
+    /**
+     * 카테고리 선택 화면
+     * 장르별로 그룹화된 카테고리 목록 표시
+     */
+    data object CategorySelect : Screen("category/select")
 
     // TODO: 팀원들이 추가할 화면들
     /**
