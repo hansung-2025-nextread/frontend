@@ -6,7 +6,9 @@ import com.nextread.readpick.data.model.book.BookDto
 import com.nextread.readpick.data.model.book.SavedBookDto
 import com.nextread.readpick.data.model.search.SearchBookDto
 import com.nextread.readpick.data.model.search.SearchLogDto
+import com.nextread.readpick.data.model.search.SearchPageResponse
 import com.nextread.readpick.data.model.search.SearchRequest
+import com.nextread.readpick.data.model.search.SortType
 import com.nextread.readpick.data.model.user.SearchHistorySettingRequest
 import com.nextread.readpick.data.remote.api.BookApi
 import com.nextread.readpick.domain.repository.BookRepository
@@ -85,16 +87,25 @@ class BookRepositoryImpl @Inject constructor(
      * 도서 검색
      * (서버 응답: data 객체 안에 books 리스트가 있음)
      */
-    override suspend fun searchBooks(keyword: String): Result<List<SearchBookDto>> = runCatching {
-        Log.d(TAG, "도서 검색 API 호출: $keyword")
+    override suspend fun searchBooks(
+        keyword: String,
+        sortType: SortType,
+        page: Int,
+        size: Int
+    ): Result<SearchPageResponse> = runCatching {
+        Log.d(TAG, "도서 검색 API 호출: keyword=$keyword, sort=$sortType, page=$page, size=$size")
 
-        // 🚨 [수정] 검색어를 Request 객체로 감싸서 전달
-        val request = SearchRequest(query = keyword)
+        val request = SearchRequest(
+            query = keyword,
+            sortBy = sortType.value,
+            page = page,
+            size = size
+        )
         val response = bookApi.searchBooks(request)
 
         if (response.success && response.data != null) {
-            Log.d(TAG, "검색 결과: ${response.data.books.size}건")
-            response.data.books
+            Log.d(TAG, "검색 결과: ${response.data.books.size}건 (페이지 ${page+1}/${response.data.page.totalPages})")
+            response.data
         } else {
             throw Exception(response.message ?: "검색 결과가 없습니다.")
         }

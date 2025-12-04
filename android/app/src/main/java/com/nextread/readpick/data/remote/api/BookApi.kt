@@ -5,6 +5,7 @@ import com.nextread.readpick.data.model.book.PersonalizedRecommendationResponse
 import com.nextread.readpick.data.model.book.SavedBookPageResponse
 import com.nextread.readpick.data.model.common.ApiResponse
 import com.nextread.readpick.data.model.search.SearchLogDto
+import com.nextread.readpick.data.model.search.SearchPageResponse
 import com.nextread.readpick.data.model.search.SearchRequest
 import com.nextread.readpick.data.model.search.SearchResponseData
 import com.nextread.readpick.data.model.user.SearchHistorySettingRequest
@@ -50,11 +51,12 @@ interface BookApi {
      * 1. GET -> POST 변경
      * 2. 주소: "api/search/smart" (명세서 기준)
      * 3. 파라미터: @Body 사용
+     * 4. 정렬 및 페이지네이션 지원
      */
     @POST("v1/api/search/smart")
     suspend fun searchBooks(
         @Body request: SearchRequest
-    ): ApiResponse<SearchResponseData>
+    ): ApiResponse<SearchPageResponse>
 
     /**
      * 내 서재 책 목록 조회

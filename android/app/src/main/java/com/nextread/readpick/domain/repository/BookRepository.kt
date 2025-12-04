@@ -4,6 +4,8 @@ import com.nextread.readpick.data.model.book.BookDto
 import com.nextread.readpick.data.model.book.SavedBookDto
 import com.nextread.readpick.data.model.search.SearchBookDto
 import com.nextread.readpick.data.model.search.SearchLogDto
+import com.nextread.readpick.data.model.search.SearchPageResponse
+import com.nextread.readpick.data.model.search.SortType
 
 interface BookRepository {
 
@@ -27,8 +29,15 @@ interface BookRepository {
      */
     suspend fun saveBook(isbn13: String): Result<Unit>
 
-    // 반환 타입을 List<SearchBookDto>로 설정
-    suspend fun searchBooks(keyword: String): Result<List<SearchBookDto>>
+    /**
+     * 도서 검색 (정렬 및 페이지네이션 지원)
+     */
+    suspend fun searchBooks(
+        keyword: String,
+        sortType: SortType = SortType.ACCURACY,
+        page: Int = 0,
+        size: Int = 20
+    ): Result<SearchPageResponse>
 
     /**
      * 내 서재 책 목록 조회
