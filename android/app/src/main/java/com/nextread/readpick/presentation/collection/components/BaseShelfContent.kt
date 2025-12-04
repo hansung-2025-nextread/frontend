@@ -9,6 +9,10 @@ import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -124,13 +128,7 @@ fun MyLibraryContent(
                         Text("삭제", fontSize = 12.sp)
                     }
                 } else {
-                    // 일반 모드: 필터 및 편집 버튼
-                    OutlinedButton(
-                        onClick = onFilterClick,
-                        contentPadding = PaddingValues(horizontal = 16.dp, vertical = 4.dp)
-                    ) {
-                        Text("필터", fontSize = 12.sp)
-                    }
+                    // 일반 모드: 편집 버튼만 표시 (필터 버튼 제거됨)
                     Button(
                         onClick = {
                             isEditMode = true

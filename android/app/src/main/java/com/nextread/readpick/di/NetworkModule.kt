@@ -3,6 +3,7 @@ package com.nextread.readpick.di
 import com.jakewharton.retrofit2.converter.kotlinx.serialization.asConverterFactory
 import com.nextread.readpick.data.remote.api.AdminApi
 import com.nextread.readpick.data.remote.api.BookApi
+import com.nextread.readpick.data.remote.api.CollectionApi
 import com.nextread.readpick.data.remote.api.CommunityApi
 import com.nextread.readpick.data.remote.interceptor.AuthInterceptor
 import com.nextread.readpick.data.remote.interceptor.LoggingInterceptorProvider
@@ -168,5 +169,18 @@ object NetworkModule {
     @Singleton
     fun provideCommunityApi(retrofit: Retrofit): CommunityApi {
         return retrofit.create(CommunityApi::class.java)
+    }
+
+    /**
+     * CollectionApi 제공
+     *
+     * 컬렉션 API 인터페이스
+     * - 컬렉션 목록 조회/생성/수정/삭제
+     * - 컬렉션 내 책 관리
+     */
+    @Provides
+    @Singleton
+    fun provideCollectionApi(retrofit: Retrofit): CollectionApi {
+        return retrofit.create(CollectionApi::class.java)
     }
 }

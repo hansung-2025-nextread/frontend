@@ -47,6 +47,7 @@ data class UserCollection(
  * 컬렉션이 없으면 "내 책장 만들기" 안내 화면을 표시합니다.
  *
  * @param hasCustomCollections 사용자 컬렉션이 존재하는지 여부
+ * @param collections 사용자 컬렉션 목록
  * @param onMakeCollectionClick 내 책장 만들기 버튼 클릭 시 호출
  * @param onEditClick 편집 버튼 클릭 시 호출
  * @param onCollectionClick 컬렉션 아이템 클릭 시 호출 (컬렉션 상세로 이동)
@@ -57,6 +58,7 @@ data class UserCollection(
 @Composable
 fun MyCollectionContent(
     hasCustomCollections: Boolean,
+    collections: List<UserCollection>,
     onMakeCollectionClick: () -> Unit,
     onEditClick: () -> Unit,
     onCollectionClick: (collectionId: Long) -> Unit,
@@ -70,10 +72,12 @@ fun MyCollectionContent(
     } else {
         // 컬렉션이 있을 때: 컬렉션 목록 표시
         CollectionListState(
+            collections = collections,
             onEditClick = onEditClick,
             onCollectionClick = onCollectionClick,
             onDeleteCollections = onDeleteCollections,
-            onRenameCollection = onRenameCollection
+            onRenameCollection = onRenameCollection,
+            onMakeCollectionClick = onMakeCollectionClick
         )
     }
 }
@@ -126,40 +130,22 @@ fun EmptyCollectionState(onMakeCollectionClick: () -> Unit) {
  *
  * 사용자가 만든 컬렉션(책장) 목록을 표시합니다.
  *
+ * @param collections 컬렉션 목록
  * @param onEditClick 편집 버튼 클릭 시 호출
  * @param onCollectionClick 컬렉션 아이템 클릭 시 호출 (컬렉션 ID 전달)
  * @param onDeleteCollections 선택된 컬렉션들을 삭제할 때 호출
  * @param onRenameCollection 컬렉션 이름을 변경할 때 호출
+ * @param onMakeCollectionClick 책장 추가 버튼 클릭 시 호출
  */
 @Composable
 fun CollectionListState(
+    collections: List<UserCollection>,
     onEditClick: () -> Unit,
     onCollectionClick: (collectionId: Long) -> Unit,
     onDeleteCollections: (List<Long>) -> Unit = {},
-    onRenameCollection: (collectionId: Long, newName: String) -> Unit = { _, _ -> }
+    onRenameCollection: (collectionId: Long, newName: String) -> Unit = { _, _ -> },
+    onMakeCollectionClick: () -> Unit = {}
 ) {
-    // TODO: ViewModel에서 실제 컬렉션 목록 가져오기
-    // 임시 데이터
-    val dummyCollections = listOf(
-        UserCollection(
-            id = 1,
-            name = "재미있게 읽은 소설",
-            bookCount = 5,
-            latestCoverUrl = null
-        ),
-        UserCollection(
-            id = 2,
-            name = "다음 프로젝트를 위한 자료 모음",
-            bookCount = 10,
-            latestCoverUrl = null
-        ),
-        UserCollection(
-            id = 3,
-            name = "기술 서적 모음",
-            bookCount = 8,
-            latestCoverUrl = null
-        )
-    )
 
     // 편집 모드 상태
     var isEditMode by remember { mutableStateOf(false) }
@@ -217,14 +203,28 @@ fun CollectionListState(
                 }
             } else {
                 Spacer(modifier = Modifier.weight(1f))
-                Button(
-                    onClick = {
-                        isEditMode = true
-                        onEditClick()
-                    },
-                    contentPadding = PaddingValues(horizontal = 16.dp, vertical = 4.dp)
-                ) {
-                    Text("편집", fontSize = 12.sp)
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    OutlinedButton(
+                        onClick = onMakeCollectionClick,
+                        contentPadding = PaddingValues(horizontal = 16.dp, vertical = 4.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Add,
+                            contentDescription = null,
+                            modifier = Modifier.size(16.dp)
+                        )
+                        Spacer(modifier = Modifier.width(4.dp))
+                        Text("책장 추가", fontSize = 12.sp)
+                    }
+                    Button(
+                        onClick = {
+                            isEditMode = true
+                            onEditClick()
+                        },
+                        contentPadding = PaddingValues(horizontal = 16.dp, vertical = 4.dp)
+                    ) {
+                        Text("편집", fontSize = 12.sp)
+                    }
                 }
             }
         }
@@ -232,7 +232,7 @@ fun CollectionListState(
         LazyColumn(
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            items(dummyCollections) { collection ->
+            items(collections) { collection ->
                 CollectionListItem(
                     collection = collection,
                     isEditMode = isEditMode,
@@ -440,6 +440,7 @@ fun MyCollectionContentEmptyPreview() {
     NextReadTheme {
         MyCollectionContent(
             hasCustomCollections = false,
+            collections = emptyList(),
             onMakeCollectionClick = {},
             onEditClick = {},
             onCollectionClick = {}
@@ -450,9 +451,25 @@ fun MyCollectionContentEmptyPreview() {
 @Preview(showBackground = true)
 @Composable
 fun MyCollectionContentListPreview() {
+    val previewCollections = listOf(
+        UserCollection(
+            id = 1,
+            name = "재미있게 읽은 소설",
+            bookCount = 5,
+            latestCoverUrl = null
+        ),
+        UserCollection(
+            id = 2,
+            name = "다음 프로젝트를 위한 자료 모음",
+            bookCount = 10,
+            latestCoverUrl = null
+        )
+    )
+
     NextReadTheme {
         MyCollectionContent(
             hasCustomCollections = true,
+            collections = previewCollections,
             onMakeCollectionClick = {},
             onEditClick = {},
             onCollectionClick = {}

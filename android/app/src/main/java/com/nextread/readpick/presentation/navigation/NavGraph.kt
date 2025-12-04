@@ -4,6 +4,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavHostController
@@ -131,7 +132,13 @@ fun ReadPickNavGraph(
         // --------------------------------------------------------
         // 🚨 5. 내 서재 (MyLibrary / Collection Screen)
         // --------------------------------------------------------
-        composable(Screen.MyLibrary.route) {
+        composable(Screen.MyLibrary.route) { backStackEntry ->
+            // CollectionViewModel을 NavBackStackEntry 범위로 얻어서
+            // CollectionSelectBookScreen에서도 같은 ViewModel 인스턴스를 공유할 수 있도록 함
+            val parentEntry = remember(backStackEntry) {
+                navController.getBackStackEntry(Screen.MyLibrary.route)
+            }
+
             CollectionScreen(
                 onNavigateToHome = {
                     navController.navigate(Screen.Home.route) {
@@ -177,12 +184,18 @@ fun ReadPickNavGraph(
         // --------------------------------------------------------
         composable(Screen.CollectionSelectBook.route) { backStackEntry ->
             val collectionName = backStackEntry.arguments?.getString("collectionName") ?: "새 책장"
+
+            // 부모 화면(CollectionScreen)의 NavBackStackEntry를 얻어서 ViewModel 공유
+            val parentEntry = remember(backStackEntry) {
+                navController.getBackStackEntry(Screen.MyLibrary.route)
+            }
+
             CollectionSelectBookScreen(
                 collectionName = collectionName,
+                parentEntry = parentEntry,
                 onDismiss = { navController.popBackStack() },
-                // 완료 시 (API 호출 후) 내 서재 메인 화면으로 복귀
-                onComplete = { _, _ ->
-                    // TODO: API 호출 로직은 ViewModel로 이동 예정
+                // 완료 시 내 서재 메인 화면으로 복귀
+                onComplete = {
                     navController.popBackStack(Screen.MyLibrary.route, inclusive = false)
                 }
             )
@@ -321,6 +334,14 @@ fun ReadPickNavGraph(
                     navController.navigate(Screen.PostDetail.createRoute(postId))
                 }
             )
+        }
+
+        // --------------------------------------------------------
+        // 컬렉션 상세 화면
+        // --------------------------------------------------------
+        composable(Screen.CollectionDetail.route) { backStackEntry ->
+            val collectionId = backStackEntry.arguments?.getString("collectionId")?.toLongOrNull() ?: 0L
+            PlaceholderScreen(name = "컬렉션 상세 화면\nCollection ID: $collectionId\n(구현 예정)")
         }
     }
 }

@@ -19,6 +19,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavBackStackEntry
 import com.nextread.readpick.R
 import com.nextread.readpick.presentation.collection.components.FavoriteBookDto
 import com.nextread.readpick.ui.theme.NextReadTheme
@@ -42,20 +45,26 @@ data class SelectableBook(
  * 내 서재(즐겨찾기)의 책들 중에서 새로운 컬렉션에 추가할 책을 선택합니다.
  *
  * @param collectionName 1단계에서 입력한 컬렉션 이름
+ * @param parentEntry 부모 화면의 NavBackStackEntry (ViewModel 공유용)
  * @param onDismiss 닫기 버튼 클릭 시 호출
- * @param onComplete 완료 버튼 클릭 시 호출 (컬렉션 이름, 선택된 책 ISBN 목록 전달)
+ * @param onComplete 완료 버튼 클릭 시 호출
  * @param modifier Modifier
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CollectionSelectBookScreen(
     collectionName: String,
+    parentEntry: NavBackStackEntry?,
     onDismiss: () -> Unit,
-    onComplete: (name: String, selectedIsbns: List<String>) -> Unit,
+    onComplete: () -> Unit,
     modifier: Modifier = Modifier
-    // TODO: ViewModel 연동 필요
-    // viewModel: CollectionViewModel = hiltViewModel()
 ) {
+    // 부모 화면(CollectionScreen)의 ViewModel을 공유
+    val viewModel: CollectionViewModel = if (parentEntry != null) {
+        hiltViewModel(parentEntry)
+    } else {
+        hiltViewModel()
+    }
     // TODO: ViewModel에서 내 서재(즐겨찾기)의 전체 책 목록 가져오기
     // 현재는 더미 데이터로 대체
     val initialBooks = remember {
@@ -105,7 +114,11 @@ fun CollectionSelectBookScreen(
         bottomBar = {
             // 완료 버튼
             Button(
-                onClick = { onComplete(collectionName, selectedIsbns) },
+                onClick = {
+                    // ViewModel을 통해 컬렉션 추가
+                    viewModel.addCollection(collectionName, selectedIsbns)
+                    onComplete()
+                },
                 enabled = selectedCount > 0,
                 modifier = Modifier
                     .fillMaxWidth()
@@ -219,8 +232,9 @@ fun CollectionSelectBookScreenPreview() {
     NextReadTheme {
         CollectionSelectBookScreen(
             collectionName = "주말 독서 모음",
+            parentEntry = null,
             onDismiss = {},
-            onComplete = { _, _ -> }
+            onComplete = {}
         )
     }
 }

@@ -51,8 +51,7 @@ enum class CollectionTab(val title: String) {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CollectionScreen(
-    // TODO: ViewModel 연동 필요 - 즐겨찾기 책 목록 및 컬렉션 데이터 로드
-    // viewModel: CollectionViewModel = hiltViewModel(),
+    viewModel: CollectionViewModel = hiltViewModel(),
     onNavigateToHome: () -> Unit,
     onNavigateToCollection: () -> Unit,
     onCommunityClick: () -> Unit,
@@ -64,10 +63,8 @@ fun CollectionScreen(
     // 현재 선택된 탭 상태
     var selectedTab by remember { mutableStateOf(CollectionTab.MY_LIBRARY) }
 
-    // TODO: ViewModel에서 실제 데이터로 교체 필요
-    // 임시 데이터 (테스트용)
-    val hasFavoriteBooks = remember { mutableStateOf(true) }     // 즐겨찾기 책 존재 여부
-    val hasCustomCollections = remember { mutableStateOf(true) }  // 사용자 컬렉션 존재 여부
+    // ViewModel 상태 관찰
+    val uiState by viewModel.uiState.collectAsState()
 
     Scaffold(
         topBar = {
@@ -102,24 +99,34 @@ fun CollectionScreen(
                     CollectionTab.MY_LIBRARY -> {
                         // 탭 1: 내 서재 - 즐겨찾기한 모든 책을 그리드로 표시
                         MyLibraryContent(
-                            bookCount = 12, // TODO: ViewModel에서 실제 즐겨찾기 책 개수 가져오기
+                            bookCount = uiState.favoriteBookCount,
                             onFilterClick = {
                                 // TODO: 필터 기능 구현 (장르별, 읽은 책/읽지 않은 책 등)
                             },
                             onEditClick = {
                                 // TODO: 편집 모드 진입 (즐겨찾기 해제, 컬렉션에 추가 등)
+                            },
+                            onDeleteBooks = { isbn13List ->
+                                viewModel.deleteFavoriteBooks(isbn13List)
                             }
                         )
                     }
                     CollectionTab.MY_BOOKSHELF -> {
                         // 탭 2: 내 책장 - 사용자가 만든 컬렉션 목록 표시
                         MyCollectionContent(
-                            hasCustomCollections = hasCustomCollections.value,
+                            hasCustomCollections = uiState.hasCustomCollections,
+                            collections = uiState.userCollections,
                             onMakeCollectionClick = onNavigateToCollectionCreate,
                             onEditClick = {
                                 // TODO: 컬렉션 편집 모드 (삭제, 순서 변경 등)
                             },
-                            onCollectionClick = onNavigateToCollectionDetail
+                            onCollectionClick = onNavigateToCollectionDetail,
+                            onDeleteCollections = { collectionIds ->
+                                viewModel.deleteCollections(collectionIds)
+                            },
+                            onRenameCollection = { collectionId, newName ->
+                                viewModel.renameCollection(collectionId, newName)
+                            }
                         )
                     }
                 }
