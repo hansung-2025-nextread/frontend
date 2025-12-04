@@ -1,11 +1,14 @@
 package com.nextread.readpick.data.repository
 
 import android.util.Log
+import com.nextread.readpick.data.model.book.BookDetailDto
 import com.nextread.readpick.data.model.book.BookDto
 import com.nextread.readpick.data.model.book.SavedBookDto
 import com.nextread.readpick.data.model.search.SearchBookDto
 import com.nextread.readpick.data.model.search.SearchLogDto
+import com.nextread.readpick.data.model.search.SearchPageResponse
 import com.nextread.readpick.data.model.search.SearchRequest
+import com.nextread.readpick.data.model.search.SortType
 import com.nextread.readpick.data.model.user.SearchHistorySettingRequest
 import com.nextread.readpick.data.remote.api.BookApi
 import com.nextread.readpick.domain.repository.BookRepository
@@ -16,22 +19,50 @@ class BookRepositoryImpl @Inject constructor(
 ) : BookRepository {
 
     /**
-     * 베스트셀러 목록 조회
-     * (서버 응답: data 자체가 List<BookDto>임)
+     * 전체 베스트셀러 목록 조회
      */
     override suspend fun getBestsellers(categoryId: Int?): Result<List<BookDto>> = runCatching {
-        // Log.d(TAG, "베스트셀러 조회 API 호출 (CategoryID: $categoryId)") // 필요 시 주석 해제
-
-        val response = bookApi.getBestsellers(category = categoryId)
+        val response = bookApi.getBestsellers(maxResults = 20)
 
         if (response.success && response.data != null) {
-            // 🚨 [확인됨] response.data가 이미 List이므로 바로 반환
             response.data
         } else {
             throw Exception(response.message ?: "베스트셀러를 불러올 수 없습니다")
         }
     }.onFailure { exception ->
         Log.e(TAG, "베스트셀러 조회 에러", exception)
+    }
+
+    /**
+     * 개인화 추천도서 조회
+     */
+    override suspend fun getPersonalizedRecommendations(limit: Int): Result<List<BookDto>> = runCatching {
+        val response = bookApi.getPersonalizedRecommendations(limit)
+
+        if (response.success && response.data != null) {
+            val bookDtos = response.data.books.map { bookDetail ->
+                mapBookDetailToBookDto(bookDetail)
+            }
+            bookDtos
+        } else {
+            throw Exception(response.message ?: "개인화 추천 조회 실패")
+        }
+    }.onFailure { exception ->
+        Log.e(TAG, "개인화 추천 조회 에러", exception)
+    }
+
+    /**
+     * BookDetailDto를 BookDto로 변환
+     */
+    private fun mapBookDetailToBookDto(detail: BookDetailDto): BookDto {
+        return BookDto(
+            isbn13 = detail.isbn13,
+            title = detail.title,
+            author = detail.author,
+            cover = detail.cover,
+            description = detail.description,
+            categoryName = detail.categoryIdList.firstOrNull()?.toString()
+        )
     }
 
     /**
@@ -56,16 +87,25 @@ class BookRepositoryImpl @Inject constructor(
      * 도서 검색
      * (서버 응답: data 객체 안에 books 리스트가 있음)
      */
-    override suspend fun searchBooks(keyword: String): Result<List<SearchBookDto>> = runCatching {
-        Log.d(TAG, "도서 검색 API 호출: $keyword")
+    override suspend fun searchBooks(
+        keyword: String,
+        sortType: SortType,
+        page: Int,
+        size: Int
+    ): Result<SearchPageResponse> = runCatching {
+        Log.d(TAG, "도서 검색 API 호출: keyword=$keyword, sort=$sortType, page=$page, size=$size")
 
-        // 🚨 [수정] 검색어를 Request 객체로 감싸서 전달
-        val request = SearchRequest(query = keyword)
+        val request = SearchRequest(
+            query = keyword,
+            sortBy = sortType.value,
+            page = page,
+            size = size
+        )
         val response = bookApi.searchBooks(request)
 
         if (response.success && response.data != null) {
-            Log.d(TAG, "검색 결과: ${response.data.books.size}건")
-            response.data.books
+            Log.d(TAG, "검색 결과: ${response.data.books.size}건 (페이지 ${page+1}/${response.data.page.totalPages})")
+            response.data
         } else {
             throw Exception(response.message ?: "검색 결과가 없습니다.")
         }

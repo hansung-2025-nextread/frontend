@@ -1,9 +1,11 @@
 package com.nextread.readpick.data.remote.api
 
 import com.nextread.readpick.data.model.book.BookDto
+import com.nextread.readpick.data.model.book.PersonalizedRecommendationResponse
 import com.nextread.readpick.data.model.book.SavedBookPageResponse
 import com.nextread.readpick.data.model.common.ApiResponse
 import com.nextread.readpick.data.model.search.SearchLogDto
+import com.nextread.readpick.data.model.search.SearchPageResponse
 import com.nextread.readpick.data.model.search.SearchRequest
 import com.nextread.readpick.data.model.search.SearchResponseData
 import com.nextread.readpick.data.model.user.SearchHistorySettingRequest
@@ -13,14 +15,20 @@ import retrofit2.http.*
 interface BookApi {
 
     /**
-     * 베스트셀러 목록 조회
+     * 전체 베스트셀러 목록 조회
      */
-    @GET("v1/api/books/bestsellers")
+    @GET("v1/api/books/bestsellers/all")
     suspend fun getBestsellers(
-        @Query("page") page: Int = 1,
-        @Query("size") size: Int = 20,
-        @Query("categoryId") category: Int? = null,
+        @Query("maxResults") maxResults: Int = 20
     ): ApiResponse<List<BookDto>>
+
+    /**
+     * 개인화 추천도서 조회
+     */
+    @GET("v1/api/personalized/recommendations")
+    suspend fun getPersonalizedRecommendations(
+        @Query("limit") limit: Int = 15
+    ): ApiResponse<PersonalizedRecommendationResponse>
 
     /**
      * 도서 상세 조회
@@ -43,11 +51,12 @@ interface BookApi {
      * 1. GET -> POST 변경
      * 2. 주소: "api/search/smart" (명세서 기준)
      * 3. 파라미터: @Body 사용
+     * 4. 정렬 및 페이지네이션 지원
      */
     @POST("v1/api/search/smart")
     suspend fun searchBooks(
         @Body request: SearchRequest
-    ): ApiResponse<SearchResponseData>
+    ): ApiResponse<SearchPageResponse>
 
     /**
      * 내 서재 책 목록 조회

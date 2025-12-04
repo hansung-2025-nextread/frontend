@@ -2,7 +2,9 @@ package com.nextread.readpick.presentation.search
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.nextread.readpick.data.model.search.SearchBookDto
 import com.nextread.readpick.data.model.search.SearchLogDto
+import com.nextread.readpick.data.model.search.SortType
 import com.nextread.readpick.domain.repository.BookRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -24,6 +26,15 @@ class SearchViewModel @Inject constructor(
     private val _uiState = MutableStateFlow<SearchUiState>(SearchUiState.Idle)
     val uiState: StateFlow<SearchUiState> = _uiState.asStateFlow()
 
+    // 정렬 타입
+    private val _sortType = MutableStateFlow(SortType.ACCURACY)
+    val sortType: StateFlow<SortType> = _sortType.asStateFlow()
+
+    // 페이지네이션 상태
+    private var currentPage = 0
+    private var allBooks = mutableListOf<SearchBookDto>()
+    private var hasMoreData = true
+
     // 검색 기록
     private val _searchHistory = MutableStateFlow<List<SearchLogDto>>(emptyList())
     val searchHistory: StateFlow<List<SearchLogDto>> = _searchHistory.asStateFlow()
@@ -42,23 +53,76 @@ class SearchViewModel @Inject constructor(
         _query.value = newQuery
     }
 
-    // 검색 실행
-    fun searchBooks() {
+    // 정렬 타입 변경 (페이지네이션 리셋)
+    fun changeSortType(newSortType: SortType) {
+        if (_sortType.value != newSortType) {
+            _sortType.value = newSortType
+            searchBooks(reset = true)
+        }
+    }
+
+    // 검색 실행 (페이지네이션 지원)
+    fun searchBooks(reset: Boolean = true) {
         val currentQuery = _query.value
         if (currentQuery.isBlank()) return
 
-        _uiState.value = SearchUiState.Loading
+        if (reset) {
+            currentPage = 0
+            allBooks.clear()
+            hasMoreData = true
+            _uiState.value = SearchUiState.Loading
+        } else {
+            // 추가 로드 - 로딩 상태 업데이트
+            val currentState = _uiState.value
+            if (currentState is SearchUiState.Success) {
+                _uiState.value = currentState.copy(isLoadingMore = true)
+            }
+        }
 
         viewModelScope.launch {
-            bookRepository.searchBooks(currentQuery)
-                .onSuccess { books ->
-                    _uiState.value = SearchUiState.Success(books)
-                    // 검색 후 기록 새로고침
+            bookRepository.searchBooks(
+                keyword = currentQuery,
+                sortType = _sortType.value,
+                page = currentPage,
+                size = 20
+            ).onSuccess { pageResponse ->
+                allBooks.addAll(pageResponse.books)
+                hasMoreData = !pageResponse.page.last
+                currentPage++
+
+                _uiState.value = SearchUiState.Success(
+                    books = allBooks.toList(),
+                    isLoadingMore = false,
+                    hasMoreData = hasMoreData
+                )
+
+                // 검색 후 기록 새로고침 (첫 페이지만)
+                if (reset) {
                     loadSearchHistory()
                 }
-                .onFailure { exception ->
-                    _uiState.value = SearchUiState.Error(exception.message ?: "검색 중 오류가 발생했습니다.")
+            }.onFailure { exception ->
+                if (reset) {
+                    _uiState.value = SearchUiState.Error(
+                        exception.message ?: "검색 중 오류가 발생했습니다."
+                    )
+                } else {
+                    // 추가 로드 실패 - 기존 데이터 유지
+                    val state = _uiState.value
+                    if (state is SearchUiState.Success) {
+                        _uiState.value = state.copy(isLoadingMore = false)
+                    }
                 }
+            }
+        }
+    }
+
+    // 다음 페이지 로드
+    fun loadMore() {
+        val currentState = _uiState.value
+        if (currentState is SearchUiState.Success &&
+            !currentState.isLoadingMore &&
+            currentState.hasMoreData) {
+            searchBooks(reset = false)
         }
     }
 
@@ -120,6 +184,6 @@ class SearchViewModel @Inject constructor(
     // 검색 기록 항목 클릭 시 해당 검색어로 검색 실행
     fun searchFromHistory(query: String) {
         _query.value = query
-        searchBooks()
+        searchBooks(reset = true)
     }
 }

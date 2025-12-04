@@ -3,11 +3,13 @@ package com.nextread.readpick.di
 import com.nextread.readpick.data.repository.AdminRepositoryImpl
 import com.nextread.readpick.data.repository.AuthRepositoryImpl
 import com.nextread.readpick.data.repository.BookRepositoryImpl
+import com.nextread.readpick.data.repository.ChatbotRepositoryImpl
 import com.nextread.readpick.data.repository.CommunityRepositoryImpl
 import com.nextread.readpick.data.repository.OnboardingRepositoryImpl
 import com.nextread.readpick.domain.repository.AdminRepository
 import com.nextread.readpick.domain.repository.AuthRepository
 import com.nextread.readpick.domain.repository.BookRepository
+import com.nextread.readpick.domain.repository.ChatbotRepository
 import com.nextread.readpick.domain.repository.CommunityRepository
 import com.nextread.readpick.domain.repository.OnboardingRepository
 import com.nextread.readpick.data.repository.CollectionRepositoryImpl // 🚨 추가
@@ -97,30 +99,15 @@ abstract class RepositoryModule {
         communityRepositoryImpl: CommunityRepositoryImpl
     ): CommunityRepository
 
-
-
-
-    // ------------------------------------------------------------------
-    // 🚨 [필수 추가] CollectionRepository 바인딩
-    // ------------------------------------------------------------------
     /**
-     * CollectionRepository 바인딩
+     * ChatbotRepository 바인딩
      *
-     * CollectionRepository 인터페이스를 요청하면
-     * CollectionRepositoryImpl 구현체를 제공
+     * ChatbotRepository 인터페이스를 요청하면
+     * ChatbotRepositoryImpl 구현체를 제공
      */
     @Binds
     @Singleton
-    abstract fun bindCollectionRepository(
-        collectionRepositoryImpl: CollectionRepositoryImpl
-    ): CollectionRepository
-
-
-
-    // 🚨 @Provides 함수들을 위한 companion object 또는 별도의 @Module 클래스가 필요합니다.
-    // 현재 @Binds 모듈 외부에 @Provides를 정의할 클래스가 필요합니다.
-    // 기존 코드의 @Binds 모듈이 abstract class로 정의되어 있으므로,
-    // @Provides 함수들은 별도의 Module 또는 Companion Object에 정의되어야 합니다.
-
-
+    abstract fun bindChatbotRepository(
+        chatbotRepositoryImpl: ChatbotRepositoryImpl
+    ): ChatbotRepository
 }
