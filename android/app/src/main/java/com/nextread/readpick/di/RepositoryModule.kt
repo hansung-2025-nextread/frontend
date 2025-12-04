@@ -110,4 +110,16 @@ abstract class RepositoryModule {
     abstract fun bindChatbotRepository(
         chatbotRepositoryImpl: ChatbotRepositoryImpl
     ): ChatbotRepository
+
+    /**
+     * CollectionRepository 바인딩
+     *
+     * CollectionRepository 인터페이스를 요청하면
+     * CollectionRepositoryImpl 구현체를 제공
+     */
+    @Binds
+    @Singleton
+    abstract fun bindCollectionRepository(
+        collectionRepositoryImpl: CollectionRepositoryImpl
+    ): CollectionRepository
 }

@@ -14,39 +14,38 @@ class CollectionRepositoryImpl @Inject constructor(
 ) : CollectionRepository {
 
     override suspend fun getCollections(): List<UserCollectionResponse> {
-        val response = collectionApi.getMyCollections()
-        if (response.success && response.data != null) {
-            return response.data
-        } else {
-            throw Exception(response.message ?: "컬렉션 목록 조회 실패")
-        }
+        // API가 직접 List를 반환 (ApiResponse 래퍼 없음)
+        return collectionApi.getMyCollections()
     }
 
     override suspend fun createCollection(name: String, isbns: List<String>): UserCollectionResponse {
-        val request = CreateCollectionRequest(name = name, isbns = isbns)
-        val response = collectionApi.createCollection(request)
-        if (response.success && response.data != null) {
-            return response.data
-        } else {
-            throw Exception(response.message ?: "컬렉션 생성 실패")
+        // 1단계: 컬렉션 생성 (이름만)
+        val request = CreateCollectionRequest(name = name)
+        val createdCollection = collectionApi.createCollection(request)
+
+        // 2단계: 책이 있으면 개별적으로 추가
+        if (isbns.isNotEmpty()) {
+            isbns.forEach { isbn ->
+                try {
+                    addBookToCollection(createdCollection.id, isbn)
+                } catch (e: Exception) {
+                    // 책 추가 실패 시 로그만 남기고 계속 진행
+                    android.util.Log.w("CollectionRepository", "책 추가 실패: $isbn", e)
+                }
+            }
         }
+
+        return createdCollection
     }
 
     override suspend fun renameCollection(collectionId: Long, newName: String): UserCollectionResponse {
         val request = UpdateCollectionRequest(name = newName)
-        val response = collectionApi.updateCollectionName(collectionId, request)
-        if (response.success && response.data != null) {
-            return response.data
-        } else {
-            throw Exception(response.message ?: "컬렉션 이름 수정 실패")
-        }
+        return collectionApi.updateCollectionName(collectionId, request)
     }
 
     override suspend fun deleteCollection(collectionId: Long) {
-        val response = collectionApi.deleteCollection(collectionId)
-        if (!response.success) {
-            throw Exception(response.message ?: "컬렉션 삭제 실패")
-        }
+        // API가 204 No Content 반환 (응답 본문 없음)
+        collectionApi.deleteCollection(collectionId)
     }
 
     override suspend fun getBooksInCollection(
@@ -58,16 +57,12 @@ class CollectionRepositoryImpl @Inject constructor(
     }
 
     override suspend fun addBookToCollection(collectionId: Long, isbn13: String) {
-        val response = collectionApi.addBookToCollection(collectionId, isbn13)
-        if (!response.success) {
-            throw Exception(response.message ?: "책 추가 실패")
-        }
+        // API가 204 No Content 반환 (응답 본문 없음)
+        collectionApi.addBookToCollection(collectionId, isbn13)
     }
 
     override suspend fun removeBookFromCollection(collectionId: Long, isbn13: String) {
-        val response = collectionApi.removeBookFromCollection(collectionId, isbn13)
-        if (!response.success) {
-            throw Exception(response.message ?: "책 제거 실패")
-        }
+        // API가 204 No Content 반환 (응답 본문 없음)
+        collectionApi.removeBookFromCollection(collectionId, isbn13)
     }
 }

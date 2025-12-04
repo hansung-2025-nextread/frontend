@@ -58,7 +58,7 @@ fun CollectionScreen(
     onNavigateToMyPage: () -> Unit,
     onNavigateToSearch: () -> Unit,
     onNavigateToCollectionCreate: () -> Unit,
-    onNavigateToCollectionDetail: (collectionId: Long) -> Unit
+    onNavigateToCollectionDetail: (collectionId: Long, collectionName: String) -> Unit
 ) {
     // 현재 선택된 탭 상태
     var selectedTab by remember { mutableStateOf(CollectionTab.MY_LIBRARY) }
@@ -220,7 +220,7 @@ fun CollectionScreenPreview() {
             onNavigateToSearch = {},
             onNavigateToCollectionCreate = {},
             onCommunityClick = {},
-            onNavigateToCollectionDetail = { _ -> }
+            onNavigateToCollectionDetail = { _, _ -> }
         )
     }
 }

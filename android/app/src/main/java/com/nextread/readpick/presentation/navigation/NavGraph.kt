@@ -7,6 +7,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -18,6 +19,14 @@ import com.nextread.readpick.presentation.onboarding.OnboardingScreen
 // 🚨 [추가] SearchScreen import
 import com.nextread.readpick.presentation.search.SearchScreen
 import com.nextread.readpick.presentation.mypage.MyPageScreen
+
+// 컬렉션 관련 Screen import
+import com.nextread.readpick.presentation.collection.CollectionScreen
+import com.nextread.readpick.presentation.collection.CollectionViewModel
+import com.nextread.readpick.presentation.collection.CollectionCreateScreen
+import com.nextread.readpick.presentation.collection.CollectionSelectBookScreen
+import com.nextread.readpick.presentation.collection.CollectionAddBookScreen
+import com.nextread.readpick.presentation.collection.detail.CollectionDetailScreen
 
 // 커뮤니티 관련 Screen import
 import com.nextread.readpick.presentation.community.main.CommunityScreen
@@ -132,13 +141,12 @@ fun ReadPickNavGraph(
         // 🚨 5. 내 서재 (MyLibrary / Collection Screen)
         // --------------------------------------------------------
         composable(Screen.MyLibrary.route) { backStackEntry ->
-            // CollectionViewModel을 NavBackStackEntry 범위로 얻어서
+            // CollectionViewModel을 이 backStackEntry 범위로 생성하여
             // CollectionSelectBookScreen에서도 같은 ViewModel 인스턴스를 공유할 수 있도록 함
-            val parentEntry = remember(backStackEntry) {
-                navController.getBackStackEntry(Screen.MyLibrary.route)
-            }
+            val viewModel: CollectionViewModel = hiltViewModel(backStackEntry)
 
             CollectionScreen(
+                viewModel = viewModel,
                 onNavigateToHome = {
                     navController.navigate(Screen.Home.route) {
                         popUpTo(Screen.Home.route) { inclusive = false }
@@ -158,9 +166,9 @@ fun ReadPickNavGraph(
                     navController.navigate(Screen.CollectionCreate.route)
                 },
                 onCommunityClick = {},
-                // 컬렉션 상세로 이동
-                onNavigateToCollectionDetail = { collectionId ->
-                    navController.navigate(Screen.CollectionDetail.createRoute(collectionId))
+                // 컬렉션 상세로 이동 (id와 name 모두 전달)
+                onNavigateToCollectionDetail = { collectionId, collectionName ->
+                    navController.navigate(Screen.CollectionDetail.createRoute(collectionId, collectionName))
                 }
             )
         }
@@ -365,7 +373,44 @@ fun ReadPickNavGraph(
         // --------------------------------------------------------
         composable(Screen.CollectionDetail.route) { backStackEntry ->
             val collectionId = backStackEntry.arguments?.getString("collectionId")?.toLongOrNull() ?: 0L
-            PlaceholderScreen(name = "컬렉션 상세 화면\nCollection ID: $collectionId\n(구현 예정)")
+            val collectionName = backStackEntry.arguments?.getString("collectionName") ?: "내 책장"
+
+            CollectionDetailScreen(
+                collectionId = collectionId,
+                collectionName = collectionName,
+                onBackClick = {
+                    navController.popBackStack()
+                },
+                onAddBookClick = {
+                    // 책 추가 화면으로 이동
+                    navController.navigate(Screen.CollectionAddBook.createRoute(collectionId, collectionName))
+                },
+                onBookClick = { isbn13 ->
+                    navController.navigate(Screen.BookDetail.createRoute(isbn13))
+                }
+            )
+        }
+
+        // --------------------------------------------------------
+        // 컬렉션에 책 추가 화면
+        // --------------------------------------------------------
+        composable(Screen.CollectionAddBook.route) { backStackEntry ->
+            val collectionId = backStackEntry.arguments?.getString("collectionId")?.toLongOrNull() ?: 0L
+            val collectionName = backStackEntry.arguments?.getString("collectionName") ?: "내 책장"
+
+            // 부모 화면(CollectionScreen)의 NavBackStackEntry를 얻어서 ViewModel 공유
+            val parentEntry = remember(backStackEntry) {
+                navController.getBackStackEntry(Screen.MyLibrary.route)
+            }
+
+            CollectionAddBookScreen(
+                collectionId = collectionId,
+                collectionName = collectionName,
+                parentEntry = parentEntry,
+                onDismiss = {
+                    navController.popBackStack()
+                }
+            )
         }
     }
 }

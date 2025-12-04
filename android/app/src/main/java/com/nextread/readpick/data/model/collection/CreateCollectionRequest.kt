@@ -5,7 +5,7 @@ import kotlinx.serialization.SerialName
 
 @Serializable
 data class CreateCollectionRequest(
-    val name: String,
-    // 컬렉션 생성 시 추가할 책의 ISBN 목록 (선택 사항)
-    val isbns: List<String> = emptyList()
+    val name: String
+    // 백엔드 API 문서에 따르면 컬렉션 생성 시 name만 필요
+    // 책은 생성 후 addBookToCollection으로 개별 추가
 )

@@ -61,7 +61,7 @@ fun MyCollectionContent(
     collections: List<UserCollection>,
     onMakeCollectionClick: () -> Unit,
     onEditClick: () -> Unit,
-    onCollectionClick: (collectionId: Long) -> Unit,
+    onCollectionClick: (collectionId: Long, collectionName: String) -> Unit,
     onDeleteCollections: (List<Long>) -> Unit = {},
     onRenameCollection: (collectionId: Long, newName: String) -> Unit = { _, _ -> },
     modifier: Modifier = Modifier
@@ -141,7 +141,7 @@ fun EmptyCollectionState(onMakeCollectionClick: () -> Unit) {
 fun CollectionListState(
     collections: List<UserCollection>,
     onEditClick: () -> Unit,
-    onCollectionClick: (collectionId: Long) -> Unit,
+    onCollectionClick: (collectionId: Long, collectionName: String) -> Unit,
     onDeleteCollections: (List<Long>) -> Unit = {},
     onRenameCollection: (collectionId: Long, newName: String) -> Unit = { _, _ -> },
     onMakeCollectionClick: () -> Unit = {}
@@ -247,7 +247,7 @@ fun CollectionListState(
                             }
                         } else {
                             // 일반 모드: 컬렉션 상세로 이동
-                            onCollectionClick(collection.id)
+                            onCollectionClick(collection.id, collection.name)
                         }
                     },
                     onRename = {
@@ -443,7 +443,7 @@ fun MyCollectionContentEmptyPreview() {
             collections = emptyList(),
             onMakeCollectionClick = {},
             onEditClick = {},
-            onCollectionClick = {}
+            onCollectionClick = { _, _ -> }
         )
     }
 }
@@ -472,7 +472,7 @@ fun MyCollectionContentListPreview() {
             collections = previewCollections,
             onMakeCollectionClick = {},
             onEditClick = {},
-            onCollectionClick = {}
+            onCollectionClick = { _, _ -> }
         )
     }
 }

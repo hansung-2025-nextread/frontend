@@ -1,6 +1,5 @@
 package com.nextread.readpick.presentation.collection
 
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -13,51 +12,33 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavBackStackEntry
 import com.nextread.readpick.R
 import com.nextread.readpick.presentation.collection.components.FavoriteBookDto
-import com.nextread.readpick.ui.theme.NextReadTheme
 
 /**
- * 선택 가능한 책 데이터 클래스
+ * 컬렉션에 책 추가 화면
  *
- * 컬렉션에 추가할 책을 선택하기 위한 래퍼 클래스
+ * 기존 컬렉션에 저장된 책들을 추가할 수 있는 화면입니다.
  *
- * @param book 즐겨찾기한 책 정보
- * @param isSelected 현재 선택된 상태 여부
- */
-data class SelectableBook(
-    val book: FavoriteBookDto,
-    val isSelected: Boolean = false
-)
-
-/**
- * 컬렉션 생성 2단계: 책 선택 화면
- *
- * 내 서재(즐겨찾기)의 책들 중에서 새로운 컬렉션에 추가할 책을 선택합니다.
- *
- * @param collectionName 1단계에서 입력한 컬렉션 이름
+ * @param collectionId 책을 추가할 컬렉션 ID
+ * @param collectionName 컬렉션 이름
  * @param parentEntry 부모 화면의 NavBackStackEntry (ViewModel 공유용)
- * @param onDismiss 닫기 버튼 클릭 시 호출
- * @param onComplete 완료 버튼 클릭 시 호출
- * @param modifier Modifier
+ * @param onDismiss 닫기 또는 완료 후 호출
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun CollectionSelectBookScreen(
+fun CollectionAddBookScreen(
+    collectionId: Long,
     collectionName: String,
     parentEntry: NavBackStackEntry?,
-    onDismiss: () -> Unit,
-    onComplete: () -> Unit,
-    modifier: Modifier = Modifier
+    onDismiss: () -> Unit
 ) {
     // 부모 화면(CollectionScreen)의 ViewModel을 공유
     val viewModel: CollectionViewModel = if (parentEntry != null) {
@@ -70,10 +51,10 @@ fun CollectionSelectBookScreen(
     val uiState by viewModel.uiState.collectAsState()
     val savedBooks = uiState.savedBooks
 
-    // 선택 상태를 관리하는 mutableStateList
+    // 선택 상태 관리
     var selectableBooks by remember { mutableStateOf<List<SelectableBook>>(emptyList()) }
 
-    // 저장된 책 목록이 변경될 때마다 selectableBooks 업데이트
+    // 저장된 책 목록이 변경될 때마다 업데이트
     LaunchedEffect(savedBooks) {
         selectableBooks = savedBooks.map { SelectableBook(it) }
     }
@@ -81,7 +62,7 @@ fun CollectionSelectBookScreen(
     val selectedCount = selectableBooks.count { it.isSelected }
     val selectedIsbns = selectableBooks.filter { it.isSelected }.map { it.book.isbn13 }
 
-    // 개별 책 선택/해제 핸들러
+    // 책 선택/해제 핸들러
     val onBookSelect: (String, Boolean) -> Unit = { isbn13, isSelected ->
         selectableBooks = selectableBooks.map { sBook ->
             if (sBook.book.isbn13 == isbn13) {
@@ -95,7 +76,7 @@ fun CollectionSelectBookScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("책장 추가", fontWeight = FontWeight.Bold) },
+                title = { Text("책 추가", fontWeight = FontWeight.Bold) },
                 navigationIcon = {
                     IconButton(onClick = onDismiss) {
                         Icon(Icons.Default.Close, contentDescription = "닫기")
@@ -107,74 +88,66 @@ fun CollectionSelectBookScreen(
             )
         },
         bottomBar = {
-            // 건너뛰기 / 완료 버튼
-            Row(
+            // 추가 버튼
+            Button(
+                onClick = {
+                    // API 호출하여 선택한 책들을 컬렉션에 추가
+                    viewModel.addBooksToCollection(collectionId, selectedIsbns)
+                    onDismiss()
+                },
+                enabled = selectedCount > 0,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 24.dp, vertical = 8.dp),
-                horizontalArrangement = Arrangement.spacedBy(12.dp)
+                    .padding(horizontal = 24.dp, vertical = 8.dp)
+                    .height(56.dp),
+                shape = RoundedCornerShape(12.dp)
             ) {
-                // 건너뛰기 버튼
-                OutlinedButton(
-                    onClick = {
-                        // 빈 리스트로 컬렉션 생성
-                        viewModel.addCollection(collectionName, emptyList())
-                        onComplete()
-                    },
-                    modifier = Modifier
-                        .weight(1f)
-                        .height(56.dp),
-                    shape = RoundedCornerShape(12.dp)
-                ) {
-                    Text("건너뛰기")
-                }
-
-                // 완료 버튼
-                Button(
-                    onClick = {
-                        // ViewModel을 통해 컬렉션 추가
-                        viewModel.addCollection(collectionName, selectedIsbns)
-                        onComplete()
-                    },
-                    enabled = selectedCount > 0,
-                    modifier = Modifier
-                        .weight(1f)
-                        .height(56.dp),
-                    shape = RoundedCornerShape(12.dp)
-                ) {
-                    Text(
-                        text = if (selectedCount > 0) "${selectedCount}권 완료" else "완료"
-                    )
-                }
+                Text(
+                    text = if (selectedCount > 0) "${selectedCount}권 추가" else "추가"
+                )
             }
         }
     ) { paddingValues ->
         Column(
-            modifier = modifier
+            modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
                 .padding(horizontal = 24.dp)
         ) {
-            // 02. 책 추가 안내
+            // 안내 문구
             Text(
-                text = "02. \"$collectionName\" 책장에 추가할 도서를 선택하세요.",
+                text = "\"$collectionName\" 책장에 추가할 도서를 선택하세요.",
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.SemiBold,
                 modifier = Modifier.padding(vertical = 16.dp)
             )
 
-            // 도서 목록
-            LazyColumn(
-                verticalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                items(selectableBooks) { sBook ->
-                    SelectableBookItem(
-                        sBook = sBook,
-                        onSelect = onBookSelect
+            // 저장된 책이 없을 때
+            if (savedBooks.isEmpty()) {
+                Box(
+                    modifier = Modifier.fillMaxSize(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = "저장된 책이 없습니다.\n홈에서 책을 저장해보세요!",
+                        style = MaterialTheme.typography.bodyLarge,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
-                // 하단 버튼과의 간격 확보
-                item { Spacer(modifier = Modifier.height(80.dp)) }
+            } else {
+                // 도서 목록
+                LazyColumn(
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    items(selectableBooks) { sBook ->
+                        SelectableBookItem(
+                            sBook = sBook,
+                            onSelect = onBookSelect
+                        )
+                    }
+                    // 하단 버튼과의 간격 확보
+                    item { Spacer(modifier = Modifier.height(80.dp)) }
+                }
             }
         }
     }
@@ -182,11 +155,6 @@ fun CollectionSelectBookScreen(
 
 /**
  * 선택 가능한 책 아이템
- *
- * 책 표지, 제목, 저자와 함께 체크박스를 표시하여 선택할 수 있도록 합니다.
- *
- * @param sBook 선택 가능한 책 정보
- * @param onSelect 책 선택/해제 시 호출되는 콜백 (ISBN, 선택 상태)
  */
 @Composable
 private fun SelectableBookItem(
@@ -241,20 +209,6 @@ private fun SelectableBookItem(
         Checkbox(
             checked = sBook.isSelected,
             onCheckedChange = { onSelect(book.isbn13, it) }
-        )
-    }
-}
-
-
-@Preview(showBackground = true)
-@Composable
-fun CollectionSelectBookScreenPreview() {
-    NextReadTheme {
-        CollectionSelectBookScreen(
-            collectionName = "주말 독서 모음",
-            parentEntry = null,
-            onDismiss = {},
-            onComplete = {}
         )
     }
 }

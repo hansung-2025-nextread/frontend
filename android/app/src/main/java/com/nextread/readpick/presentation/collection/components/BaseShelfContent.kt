@@ -60,15 +60,8 @@ fun MyLibraryContent(
     modifier: Modifier = Modifier
 ) {
     // TODO: ViewModel에서 실제 즐겨찾기 책 목록 가져오기
-    // 임시 데이터
-    val dummyBooks = List(bookCount) {
-        FavoriteBookDto(
-            isbn13 = "978123456789$it",
-            title = "책 제목 ${it + 1}",
-            author = "저자 ${it + 1}",
-            coverUrl = "https://placehold.co/120x180/7F1D1D/ffffff?text=Book+$it"
-        )
-    }
+    // API 연동 전까지 빈 목록 사용
+    val dummyBooks = emptyList<FavoriteBookDto>()
 
     // 편집 모드 상태
     var isEditMode by remember { mutableStateOf(false) }

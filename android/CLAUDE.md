@@ -8,6 +8,8 @@ ReadPick is an AI-powered book recommendation Android app built with Jetpack Com
 
 ## Build and Development Commands
 
+**Windows Users**: Replace `./gradlew` with `gradlew.bat` in all commands below.
+
 ### Building the App
 ```bash
 # Debug build
@@ -27,6 +29,9 @@ ReadPick is an AI-powered book recommendation Android app built with Jetpack Com
 ```bash
 # Run all unit tests
 ./gradlew test
+
+# Run specific test class
+./gradlew test --tests "com.nextread.readpick.YourTestClass"
 
 # Run instrumented tests
 ./gradlew connectedAndroidTest
@@ -218,7 +223,7 @@ This pattern ensures exhaustive when-expressions and compile-time safety.
 - Easy to mock for testing
 
 ### Common Response Wrapper
-All API responses use:
+Most API responses use this wrapper (though some endpoints return data directly):
 ```kotlin
 @Serializable
 data class ApiResponse<T>(
@@ -226,6 +231,30 @@ data class ApiResponse<T>(
     val data: T? = null,
     val message: String? = null
 )
+```
+
+### ViewModel Pattern with StateFlow
+ViewModels use StateFlow for reactive UI updates:
+```kotlin
+@HiltViewModel
+class HomeViewModel @Inject constructor(
+    private val repository: BookRepository
+) : ViewModel() {
+    private val _uiState = MutableStateFlow<HomeUiState>(HomeUiState.Loading)
+    val uiState: StateFlow<HomeUiState> = _uiState.asStateFlow()
+
+    init {
+        loadData()
+    }
+
+    private fun loadData() {
+        viewModelScope.launch {
+            repository.getData()
+                .onSuccess { data -> _uiState.value = HomeUiState.Success(data) }
+                .onFailure { error -> _uiState.value = HomeUiState.Error(error.message ?: "Error") }
+        }
+    }
+}
 ```
 
 ## Backend API Integration
@@ -301,6 +330,8 @@ Use Android Studio Logcat with filter: `tag:YourTagName`
 4. **Don't hardcode API URLs**: Use `BuildConfig.BASE_URL`
 5. **Don't skip error handling**: Always handle both success and failure cases in repositories
 6. **Don't create new navigation patterns**: Use the established `Screen` + `NavGraph` pattern
+7. **Don't expose MutableStateFlow**: Always expose read-only `StateFlow` using `.asStateFlow()`
+8. **Don't forget @Inject constructor**: Repository implementations need `@Inject constructor` for Hilt to work
 
 ## Testing Strategy
 

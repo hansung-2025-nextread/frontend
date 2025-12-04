@@ -67,9 +67,19 @@ sealed class Screen(val route: String) {
     /**
      * 컬렉션 상세 화면
      * @param collectionId 컬렉션 고유 ID
+     * @param collectionName 컬렉션 이름
      */
-    data object CollectionDetail : Screen("collection_detail/{collectionId}") {
-        fun createRoute(id: Long) = "collection_detail/$id"
+    data object CollectionDetail : Screen("collection_detail/{collectionId}/{collectionName}") {
+        fun createRoute(id: Long, name: String) = "collection_detail/$id/$name"
+    }
+
+    /**
+     * 컬렉션에 책 추가 화면
+     * @param collectionId 컬렉션 고유 ID
+     * @param collectionName 컬렉션 이름
+     */
+    data object CollectionAddBook : Screen("collection_add_book/{collectionId}/{collectionName}") {
+        fun createRoute(id: Long, name: String) = "collection_add_book/$id/$name"
     }
 
     /**
