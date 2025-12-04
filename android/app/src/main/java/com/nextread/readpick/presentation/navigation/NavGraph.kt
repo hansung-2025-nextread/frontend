@@ -92,11 +92,13 @@ fun ReadPickNavGraph(
         // 3. 홈 화면
         composable(Screen.Home.route) {
             HomeScreen(
-                onMenuClick = { /* TODO: 네비게이션 드로어 열기 */ },
-
                 // 🚨 [연결] 검색 화면으로 이동
                 onSearchClick = {
                     navController.navigate(Screen.Search.route)
+                },
+                // 🚨 [연결] 카테고리 선택 화면으로 이동
+                onMenuClick = {
+                    navController.navigate(Screen.CategorySelect.route)
                 },
                 // 🚨 [연결] 챗봇 화면으로 이동
                 onChatbotClick = {
