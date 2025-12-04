@@ -1,6 +1,7 @@
 package com.nextread.readpick.presentation.home
 
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyRow
@@ -13,6 +14,8 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.layout.ContentScale
@@ -21,6 +24,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.compose.AsyncImage
@@ -45,6 +49,8 @@ fun HomeScreen(
 ) {
     // ViewModel의 uiState를 관찰
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val personalizedBooks by viewModel.personalizedBooks.collectAsStateWithLifecycle()
+    val userName by viewModel.userName.collectAsStateWithLifecycle()
 
     // uiState (Sealed Interface)에 따라 UI 분기
     when (val state = uiState) {
@@ -64,6 +70,8 @@ fun HomeScreen(
             // 성공: state.books 데이터를 UI Content에 전달
             HomeScreenContent(
                 books = state.books,
+                personalizedBooks = personalizedBooks,
+                userName = userName,
                 onSearchClick = onSearchClick,
                 onMenuClick = onMenuClick,
                 onChatbotClick = onChatbotClick,
@@ -84,7 +92,9 @@ fun HomeScreen(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun HomeScreenContent(
-    books: List<BookDto>, // API로부터 받은 책 목록
+    books: List<BookDto>, // 베스트셀러 목록
+    personalizedBooks: List<BookDto> = emptyList(), // 개인화 추천 목록
+    userName: String? = null, // 사용자 이름
     onSearchClick: () -> Unit,
     onMenuClick: () -> Unit,
     onChatbotClick: () -> Unit,
@@ -110,29 +120,80 @@ private fun HomeScreenContent(
         floatingActionButton = {
             ChatbotFab(onClick = onChatbotClick)
         },
-        floatingActionButtonPosition = FabPosition.End
+        floatingActionButtonPosition = FabPosition.End,
+        containerColor = MaterialTheme.colorScheme.background
     ) { paddingValues ->
         // Scaffold 내부 컨텐츠
         Column(
             modifier = Modifier
                 .padding(paddingValues)
                 .fillMaxSize()
-                .padding(horizontal = 20.dp)
+                .padding(horizontal = 24.dp)
         ) {
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(20.dp))
 
             // 1. 검색창
             SearchTriggerBar(
                 onClick = onSearchClick
             )
 
-            Spacer(modifier = Modifier.height(24.dp))
+            Spacer(modifier = Modifier.height(32.dp))
 
             // 2. 베스트셀러 목록 (API 연동)
             BestsellerSection(
                 books = books,
                 onBookClick = onBookClick
             )
+
+            // 3. 개인화 추천 목록
+            if (personalizedBooks.isNotEmpty()) {
+                Spacer(modifier = Modifier.height(32.dp))
+                PersonalizedRecommendationSection(
+                    books = personalizedBooks,
+                    userName = userName,
+                    onBookClick = onBookClick
+                )
+            }
+        }
+    }
+}
+
+/**
+ * 개인화 추천도서 목록 (LazyRow)
+ */
+@Composable
+fun PersonalizedRecommendationSection(
+    books: List<BookDto>,
+    userName: String?,
+    onBookClick: (String) -> Unit
+) {
+    Column(modifier = Modifier.fillMaxWidth()) {
+        // 제목
+        val title = if (!userName.isNullOrEmpty()) {
+            "$userName 님을 위한 추천도서"
+        } else {
+            "추천도서"
+        }
+
+        Text(
+            text = title,
+            style = MaterialTheme.typography.headlineSmall,
+            fontWeight = FontWeight.Bold,
+            color = MaterialTheme.colorScheme.onBackground,
+            modifier = Modifier.padding(bottom = 16.dp)
+        )
+
+        // 책 목록
+        LazyRow(
+            horizontalArrangement = Arrangement.spacedBy(20.dp),
+            contentPadding = PaddingValues(vertical = 4.dp)
+        ) {
+            items(books) { book ->
+                BookCoverItem(
+                    book = book,
+                    onBookClick = onBookClick
+                )
+            }
         }
     }
 }
@@ -147,10 +208,11 @@ fun BestsellerSection(
 ) {
     Column(modifier = Modifier.fillMaxWidth()) {
         Text(
-            text = "베스트셀러", // 시안의 "추천 도서" -> "베스트셀러"
-            style = MaterialTheme.typography.titleLarge,
+            text = "베스트셀러",
+            style = MaterialTheme.typography.headlineSmall,
             fontWeight = FontWeight.Bold,
-            modifier = Modifier.padding(bottom = 12.dp)
+            color = MaterialTheme.colorScheme.onBackground,
+            modifier = Modifier.padding(bottom = 16.dp)
         )
 
         if (books.isEmpty()) {
@@ -158,15 +220,22 @@ fun BestsellerSection(
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(180.dp),
+                    .height(220.dp)
+                    .clip(RoundedCornerShape(16.dp))
+                    .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f)),
                 contentAlignment = Alignment.Center
             ) {
-                Text(text = "베스트셀러 정보가 없습니다.")
+                Text(
+                    text = "베스트셀러 정보가 없습니다.",
+                    style = MaterialTheme.typography.bodyLarge,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
             }
         } else {
             // 책 목록을 가로 스크롤로 표시
             LazyRow(
-                horizontalArrangement = Arrangement.spacedBy(16.dp)
+                horizontalArrangement = Arrangement.spacedBy(20.dp),
+                contentPadding = PaddingValues(vertical = 4.dp)
             ) {
                 items(books) { book ->
                     BookCoverItem(
@@ -189,36 +258,70 @@ fun BookCoverItem(
 ) {
     Column(
         modifier = Modifier
-            .width(120.dp)
-            .clickable { onBookClick(book.isbn13) }, // 클릭 시 isbn13 전달
+            .width(140.dp)
+            .clickable { onBookClick(book.isbn13) },
         horizontalAlignment = Alignment.Start
     ) {
-        // Coil 라이브러리를 사용해 URL 이미지 로드
-        AsyncImage(
-            model = book.cover, // API에서 받은 책 표지 URL
-            contentDescription = book.title,
+        // 책 표지 카드
+        Card(
             modifier = Modifier
-                .width(120.dp)
-                .height(180.dp)
-                .clip(RoundedCornerShape(12.dp)),
-            contentScale = ContentScale.Crop,
-            // TODO: 로딩/에러 시 보여줄 기본 이미지를 drawable에 추가하고 연결
-            placeholder = painterResource(id = R.drawable.ic_menu),
-            error = painterResource(id = R.drawable.ic_menu)
-        )
-        Spacer(modifier = Modifier.height(8.dp))
+                .width(140.dp)
+                .height(200.dp),
+            shape = RoundedCornerShape(16.dp),
+            elevation = CardDefaults.cardElevation(
+                defaultElevation = 8.dp,
+                pressedElevation = 2.dp
+            )
+        ) {
+            Box {
+                // Coil 라이브러리를 사용해 URL 이미지 로드
+                AsyncImage(
+                    model = book.cover,
+                    contentDescription = book.title,
+                    modifier = Modifier.fillMaxSize(),
+                    contentScale = ContentScale.Crop,
+                    placeholder = painterResource(id = R.drawable.ic_menu),
+                    error = painterResource(id = R.drawable.ic_menu)
+                )
+                // 하단 그라데이션 오버레이
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(60.dp)
+                        .align(Alignment.BottomCenter)
+                        .background(
+                            Brush.verticalGradient(
+                                colors = listOf(
+                                    Color.Transparent,
+                                    Color.Black.copy(alpha = 0.3f)
+                                )
+                            )
+                        )
+                )
+            }
+        }
+
+        Spacer(modifier = Modifier.height(12.dp))
+
+        // 책 제목
         Text(
             text = book.title,
             style = MaterialTheme.typography.bodyMedium,
-            fontWeight = FontWeight.SemiBold,
+            fontWeight = FontWeight.Bold,
             maxLines = 2,
-            overflow = TextOverflow.Ellipsis // 제목이 길면 ... 처리
+            overflow = TextOverflow.Ellipsis,
+            color = MaterialTheme.colorScheme.onBackground,
+            lineHeight = 20.sp
         )
+
+        Spacer(modifier = Modifier.height(4.dp))
+
+        // 저자
         Text(
             text = book.author,
             style = MaterialTheme.typography.bodySmall,
             maxLines = 1,
-            overflow = TextOverflow.Ellipsis, // 저자가 길면 ... 처리
+            overflow = TextOverflow.Ellipsis,
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
     }
@@ -234,33 +337,25 @@ fun HomeTopBar(
     Surface(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 8.dp),
-        shape = RoundedCornerShape(30.dp),
-        color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f),
-        shadowElevation = 0.dp
+            .padding(horizontal = 20.dp, vertical = 12.dp),
+        shape = RoundedCornerShape(20.dp),
+        color = MaterialTheme.colorScheme.surface,
+        shadowElevation = 2.dp,
+        tonalElevation = 1.dp
     ) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 16.dp, vertical = 12.dp),
+                .padding(horizontal = 16.dp, vertical = 14.dp),
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceBetween
+            horizontalArrangement = Arrangement.Center
         ) {
-            IconButton(onClick = onMenuClick) {
-                Icon(
-                    painter = painterResource(id = R.drawable.ic_menu),
-                    contentDescription = "메뉴",
-                    tint = MaterialTheme.colorScheme.onPrimaryContainer,
-                    modifier = Modifier.size(24.dp)
-                )
-            }
             Text(
                 text = "Next Read",
-                style = MaterialTheme.typography.titleLarge,
+                style = MaterialTheme.typography.headlineMedium,
                 fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.onPrimaryContainer
+                color = MaterialTheme.colorScheme.primary
             )
-            Spacer(modifier = Modifier.size(48.dp)) // 오른쪽 정렬을 위한 공간
         }
     }
 }
@@ -276,26 +371,29 @@ fun SearchTriggerBar(
         modifier = Modifier
             .fillMaxWidth()
             .clickable(onClick = onClick),
-        shape = RoundedCornerShape(30.dp),
-        color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
-        shadowElevation = 0.dp
+        shape = RoundedCornerShape(20.dp),
+        color = MaterialTheme.colorScheme.surface,
+        shadowElevation = 2.dp,
+        tonalElevation = 1.dp
     ) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 20.dp, vertical = 14.dp),
+                .padding(horizontal = 20.dp, vertical = 16.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Text(
-                text = "도서를 검색하세요",
-                style = MaterialTheme.typography.bodyLarge,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.weight(1f)
-            )
             Icon(
                 painter = painterResource(id = R.drawable.ic_search),
                 contentDescription = "검색",
-                tint = MaterialTheme.colorScheme.onSurfaceVariant
+                tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
+                modifier = Modifier.size(22.dp)
+            )
+            Spacer(modifier = Modifier.width(14.dp))
+            Text(
+                text = "도서를 검색하세요",
+                style = MaterialTheme.typography.bodyLarge,
+                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
+                modifier = Modifier.weight(1f)
             )
         }
     }
@@ -311,15 +409,18 @@ fun ChatbotFab(
     FloatingActionButton(
         onClick = onClick,
         shape = CircleShape,
-        containerColor = MaterialTheme.colorScheme.secondaryContainer,
-        contentColor = MaterialTheme.colorScheme.onSecondaryContainer,
-        elevation = FloatingActionButtonDefaults.elevation(defaultElevation = 4.dp)
+        containerColor = MaterialTheme.colorScheme.primaryContainer,
+        contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+        elevation = FloatingActionButtonDefaults.elevation(
+            defaultElevation = 8.dp,
+            pressedElevation = 12.dp
+        )
     ) {
         Icon(
             painter = painterResource(id = R.drawable.ic_chatbot),
             contentDescription = "챗봇",
-            tint = Color.Unspecified, // 이미지 원본 색상 사용
-            modifier = Modifier.size(35.dp) // 아이콘 크기 조절
+            tint = Color.Unspecified,
+            modifier = Modifier.size(36.dp)
         )
     }
 }
@@ -337,15 +438,16 @@ fun HomeBottomNavigation(
     Surface(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 8.dp),
-        shape = RoundedCornerShape(30.dp),
-        color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f),
-        shadowElevation = 2.dp
+            .padding(horizontal = 20.dp, vertical = 12.dp),
+        shape = RoundedCornerShape(24.dp),
+        color = MaterialTheme.colorScheme.surface,
+        shadowElevation = 8.dp,
+        tonalElevation = 3.dp
     ) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(vertical = 12.dp),
+                .padding(vertical = 16.dp, horizontal = 8.dp),
             horizontalArrangement = Arrangement.SpaceEvenly,
             verticalAlignment = Alignment.CenterVertically
         ) {
@@ -389,22 +491,29 @@ fun BottomNavItem(
 ) {
     Column(
         modifier = Modifier
-            .clip(RoundedCornerShape(12.dp))
+            .clip(RoundedCornerShape(16.dp))
             .clickable(onClick = onClick)
-            .padding(horizontal = 12.dp, vertical = 4.dp),
+            .background(
+                if (isSelected) MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f)
+                else Color.Transparent
+            )
+            .padding(horizontal = 16.dp, vertical = 8.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center // 👈 Crash 수정된 부분
+        verticalArrangement = Arrangement.Center
     ) {
         Icon(
             painter = painter,
             contentDescription = label,
-            tint = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
+            tint = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.size(26.dp)
         )
+        Spacer(modifier = Modifier.height(4.dp))
         Text(
             text = label,
-            style = MaterialTheme.typography.bodySmall,
+            style = MaterialTheme.typography.labelSmall,
             color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
-            fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal
+            fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
+            fontSize = 11.sp
         )
     }
 }
@@ -423,10 +532,18 @@ fun HomeScreenPreview() {
         BookDto("789", "Jetpack 최고", "팀원1", "", "설명...", "IT")
     )
 
+    val dummyPersonalizedBooks = listOf(
+        BookDto("111", "개인화 추천 1", "저자A", "", "설명...", "소설"),
+        BookDto("222", "개인화 추천 2", "저자B", "", "설명...", "에세이"),
+        BookDto("333", "개인화 추천 3", "저자C", "", "설명...", "자기계발")
+    )
+
     MaterialTheme {
         // UI Content 함수를 임시 데이터로 호출
         HomeScreenContent(
             books = dummyBooks,
+            personalizedBooks = dummyPersonalizedBooks,
+            userName = "홍길동",
             onSearchClick = {},
             onMenuClick = {},
             onChatbotClick = {},

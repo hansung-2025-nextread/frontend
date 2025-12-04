@@ -28,7 +28,19 @@ sealed class Screen(val route: String) {
     data object Search : Screen("search")
 
     // TODO: 팀원들이 추가할 화면들
-    data object Chatbot : Screen("chatbot")
+    /**
+     * 챗봇 세션 목록 화면
+     */
+    data object ChatbotSessionList : Screen("chatbot/sessions")
+
+    /**
+     * 챗봇 채팅 화면
+     * @param sessionId 세션 ID
+     */
+    data object Chat : Screen("chatbot/chat/{sessionId}") {
+        fun createRoute(sessionId: Long) = "chatbot/chat/$sessionId"
+    }
+
     data object Review : Screen("review")
     data object MyPage : Screen("mypage")
 

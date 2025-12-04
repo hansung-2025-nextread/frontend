@@ -8,10 +8,14 @@ import com.nextread.readpick.data.model.search.SearchLogDto
 interface BookRepository {
 
     /**
-     * 베스트셀러 목록 조회
-     * 🚨 categoryId: Int? 파라미터 추가
+     * 전체 베스트셀러 목록 조회
      */
     suspend fun getBestsellers(categoryId: Int? = null): Result<List<BookDto>>
+
+    /**
+     * 개인화 추천도서 조회
+     */
+    suspend fun getPersonalizedRecommendations(limit: Int = 15): Result<List<BookDto>>
 
     /**
      * 도서 상세 조회
