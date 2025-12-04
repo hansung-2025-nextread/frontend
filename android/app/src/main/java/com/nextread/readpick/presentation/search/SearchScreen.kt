@@ -1,20 +1,24 @@
 package com.nextread.readpick.presentation.search
 
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.ArrowDropDown
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -32,8 +36,9 @@ import coil.compose.AsyncImage
 import com.nextread.readpick.R
 import com.nextread.readpick.data.model.search.SearchBookDto
 import com.nextread.readpick.data.model.search.SearchLogDto
+import com.nextread.readpick.data.model.search.SortType
 import java.text.DecimalFormat
-
+import androidx.compose.foundation.layout.statusBarsPadding
 @Composable
 fun SearchScreen(
     viewModel: SearchViewModel = hiltViewModel(),
@@ -42,6 +47,7 @@ fun SearchScreen(
 ) {
     val query by viewModel.query.collectAsStateWithLifecycle()
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val sortType by viewModel.sortType.collectAsStateWithLifecycle()
     val searchHistory by viewModel.searchHistory.collectAsStateWithLifecycle()
     val searchHistoryEnabled by viewModel.searchHistoryEnabled.collectAsStateWithLifecycle()
     val keyboardController = LocalSoftwareKeyboardController.current
@@ -95,8 +101,13 @@ fun SearchScreen(
                             Text(text = "검색 결과가 없습니다.")
                         }
                     } else {
-                        SearchResultList(
+                        SearchResultSection(
                             books = state.books,
+                            sortType = sortType,
+                            isLoadingMore = state.isLoadingMore,
+                            hasMoreData = state.hasMoreData,
+                            onSortChange = viewModel::changeSortType,
+                            onLoadMore = viewModel::loadMore,
                             onBookClick = onBookClick
                         )
                     }
@@ -243,6 +254,7 @@ fun SearchHistoryItem(
 /**
  * 상단 검색 바
  */
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SearchTopBar(
@@ -254,6 +266,7 @@ fun SearchTopBar(
     Row(
         modifier = Modifier
             .fillMaxWidth()
+            .statusBarsPadding() // <-- ADDED
             .padding(horizontal = 4.dp, vertical = 8.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
@@ -296,6 +309,133 @@ fun SearchTopBar(
 /**
  * 검색 결과 리스트
  */
+/**
+ * 검색 결과 섹션 (정렬 + 목록 + 페이지네이션)
+ */
+@Composable
+fun SearchResultSection(
+    books: List<SearchBookDto>,
+    sortType: SortType,
+    isLoadingMore: Boolean,
+    hasMoreData: Boolean,
+    onSortChange: (SortType) -> Unit,
+    onLoadMore: () -> Unit,
+    onBookClick: (String) -> Unit
+) {
+    val listState = rememberLazyListState()
+
+    // 무한 스크롤 감지
+    LaunchedEffect(listState) {
+        snapshotFlow {
+            val layoutInfo = listState.layoutInfo
+            val totalItems = layoutInfo.totalItemsCount
+            val lastVisibleItem = layoutInfo.visibleItemsInfo.lastOrNull()?.index ?: 0
+            lastVisibleItem >= totalItems - 3
+        }.collect { shouldLoadMore ->
+            if (shouldLoadMore && hasMoreData && !isLoadingMore) {
+                onLoadMore()
+            }
+        }
+    }
+
+    LazyColumn(
+        state = listState,
+        contentPadding = PaddingValues(16.dp),
+        verticalArrangement = Arrangement.spacedBy(16.dp)
+    ) {
+        // 정렬 드롭다운
+        item {
+            SortDropdownMenu(
+                selectedSortType = sortType,
+                onSortChange = onSortChange
+            )
+        }
+
+        // 도서 목록
+        items(
+            items = books,
+            key = { book ->
+                if (book.isbn13.isNotBlank()) book.isbn13
+                else "${book.title}_${book.author}_${books.indexOf(book)}"
+            }
+        ) { book ->
+            SearchBookItem(book = book, onBookClick = onBookClick)
+        }
+
+        // 로딩 인디케이터
+        if (isLoadingMore) {
+            item {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    CircularProgressIndicator(modifier = Modifier.size(24.dp))
+                }
+            }
+        }
+    }
+}
+
+/**
+ * 정렬 드롭다운 메뉴
+ */
+@Composable
+fun SortDropdownMenu(
+    selectedSortType: SortType,
+    onSortChange: (SortType) -> Unit
+) {
+    var expanded by remember { mutableStateOf(false) }
+
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(bottom = 8.dp),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Text(
+            text = "정렬",
+            style = MaterialTheme.typography.titleMedium,
+            fontWeight = FontWeight.Bold
+        )
+
+        Box {
+            OutlinedButton(onClick = { expanded = true }) {
+                Text(selectedSortType.displayName)
+                Icon(
+                    imageVector = Icons.Default.ArrowDropDown,
+                    contentDescription = "정렬 선택"
+                )
+            }
+
+            DropdownMenu(
+                expanded = expanded,
+                onDismissRequest = { expanded = false }
+            ) {
+                SortType.entries.forEach { sortType ->
+                    DropdownMenuItem(
+                        text = { Text(sortType.displayName) },
+                        onClick = {
+                            onSortChange(sortType)
+                            expanded = false
+                        },
+                        leadingIcon = {
+                            if (sortType == selectedSortType) {
+                                Icon(
+                                    imageVector = Icons.Default.Check,
+                                    contentDescription = "선택됨"
+                                )
+                            }
+                        }
+                    )
+                }
+            }
+        }
+    }
+}
+
 @Composable
 fun SearchResultList(
     books: List<SearchBookDto>,
