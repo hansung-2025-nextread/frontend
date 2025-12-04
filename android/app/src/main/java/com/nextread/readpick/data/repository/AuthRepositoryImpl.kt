@@ -2,6 +2,9 @@ package com.nextread.readpick.data.repository
 
 import com.nextread.readpick.data.local.TokenManager
 import com.nextread.readpick.data.model.auth.LoginRequest
+import com.nextread.readpick.data.model.auth.LoginResponse
+import com.nextread.readpick.data.model.user.UserInfoDto // 🚨 새로 추가
+import com.nextread.readpick.data.model.common.ApiResponse
 import com.nextread.readpick.data.remote.api.AuthApi
 import com.nextread.readpick.domain.repository.AuthRepository
 import javax.inject.Inject
@@ -74,16 +77,52 @@ class AuthRepositoryImpl @Inject constructor(
     }
 
     /**
-     * 로그아웃
-     *
-     * TokenManager의 모든 데이터 삭제
+     * 로그아웃: 서버 요청 후 로컬 토큰 삭제
      */
     override suspend fun logout(): Result<Unit> {
         return try {
+            // 1. 서버 로그아웃 요청
+            authApi.logout()
+            // 2. 로컬 토큰 삭제
             tokenManager.clear()
             Result.success(Unit)
         } catch (e: Exception) {
+            tokenManager.clear() // 서버 통신 실패해도 로컬에서 삭제
             Result.failure(e)
+        }
+    }
+
+    /**
+     * 마이페이지: 서버로부터 사용자 프로필 정보를 조회합니다.
+     */
+    override suspend fun fetchUserProfile(): UserInfoDto {
+        val response = authApi.fetchUserProfile()
+
+        if (response.success && response.data != null) {
+            return response.data
+        } else {
+            // 🚨🚨🚨 오류 발생 부분 수정: response.error 참조를 제거하고 일반 메시지를 사용합니다. 🚨🚨🚨
+            // 백엔드에서 에러 메시지를 응답 본문에 직접 포함하는 경우를 대비
+            val errorMessage = "프로필 조회 실패"
+
+            // 💡 만약 response.message 필드가 있다면:
+            // val errorMessage = response.message ?: "프로필 조회 실패"
+
+            throw Exception(errorMessage)
+
+        }
+    }
+
+    // 🚨 마이페이지: TokenManager에서 사용자 정보를 가져오는 함수 추가
+    override fun getUserInfo(): UserInfoDto? {
+        val email = tokenManager.getEmail()
+        val name = tokenManager.getName()
+        val picture = tokenManager.getPicture()
+
+        return if (email != null && name != null) {
+            UserInfoDto(name = name, email = email, profileImageUrl = picture)
+        } else {
+            null
         }
     }
 }

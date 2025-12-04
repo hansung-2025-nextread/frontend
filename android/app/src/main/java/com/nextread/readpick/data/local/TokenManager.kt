@@ -147,6 +147,37 @@ class TokenManager @Inject constructor(
         }
     }
 
+    // ---------------------------------------------------------------------------------------------
+    // 🚨 [필수 추가] AuthRepositoryImpl에서 동기적으로 호출할 함수들 (runBlocking 사용)
+    // ---------------------------------------------------------------------------------------------
+
+    /**
+     * 사용자 이메일 조회 (동기)
+     */
+    fun getEmail(): String? {
+        return runBlocking {
+            context.dataStore.data.first()[USER_EMAIL_KEY]
+        }
+    }
+
+    /**
+     * 사용자 이름 조회 (동기)
+     */
+    fun getName(): String? {
+        return runBlocking {
+            context.dataStore.data.first()[USER_NAME_KEY]
+        }
+    }
+
+    /**
+     * 사용자 프로필 사진 URL 조회 (동기)
+     */
+    fun getPicture(): String? {
+        return runBlocking {
+            context.dataStore.data.first()[USER_PICTURE_KEY]
+        }
+    }
+
     /**
      * 사용자 ID 조회 (동기)
      *

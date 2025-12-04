@@ -18,7 +18,6 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
@@ -31,6 +30,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.compose.AsyncImage
 import com.nextread.readpick.R
 import com.nextread.readpick.data.model.book.BookDto
+import com.nextread.readpick.presentation.common.component.ReadPickBottomNavigation
 
 /**
  * 메인 HomeScreen Composable (ViewModel과 상태 관리)
@@ -111,7 +111,8 @@ private fun HomeScreenContent(
             )
         },
         bottomBar = {
-            HomeBottomNavigation(
+            ReadPickBottomNavigation(
+                currentRoute = "home",
                 onHomeClick = { /* 현재 화면 */ },
                 onMyLibraryClick = onMyLibraryClick,
                 onCommunityClick = onCommunityClick,
