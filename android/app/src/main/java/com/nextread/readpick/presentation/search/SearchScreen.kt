@@ -38,7 +38,7 @@ import com.nextread.readpick.data.model.search.SearchBookDto
 import com.nextread.readpick.data.model.search.SearchLogDto
 import com.nextread.readpick.data.model.search.SortType
 import java.text.DecimalFormat
-
+import androidx.compose.foundation.layout.statusBarsPadding
 @Composable
 fun SearchScreen(
     viewModel: SearchViewModel = hiltViewModel(),
@@ -254,6 +254,7 @@ fun SearchHistoryItem(
 /**
  * 상단 검색 바
  */
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SearchTopBar(
@@ -265,6 +266,7 @@ fun SearchTopBar(
     Row(
         modifier = Modifier
             .fillMaxWidth()
+            .statusBarsPadding() // <-- ADDED
             .padding(horizontal = 4.dp, vertical = 8.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
