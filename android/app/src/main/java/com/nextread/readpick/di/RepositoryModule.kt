@@ -14,6 +14,8 @@ import com.nextread.readpick.domain.repository.CommunityRepository
 import com.nextread.readpick.domain.repository.OnboardingRepository
 import com.nextread.readpick.data.repository.CollectionRepositoryImpl // 🚨 추가
 import com.nextread.readpick.domain.repository.CollectionRepository
+import com.nextread.readpick.data.repository.ReviewRepositoryImpl
+import com.nextread.readpick.domain.repository.ReviewRepository
 import dagger.Binds
 import dagger.Module
 import dagger.hilt.InstallIn
@@ -122,4 +124,16 @@ abstract class RepositoryModule {
     abstract fun bindCollectionRepository(
         collectionRepositoryImpl: CollectionRepositoryImpl
     ): CollectionRepository
+
+    /**
+     * ReviewRepository 바인딩
+     *
+     * ReviewRepository 인터페이스를 요청하면
+     * ReviewRepositoryImpl 구현체를 제공
+     */
+    @Binds
+    @Singleton
+    abstract fun bindReviewRepository(
+        reviewRepositoryImpl: ReviewRepositoryImpl
+    ): ReviewRepository
 }

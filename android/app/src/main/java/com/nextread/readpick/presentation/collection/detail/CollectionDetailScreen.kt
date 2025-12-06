@@ -24,8 +24,10 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import coil.compose.AsyncImage
 import com.nextread.readpick.R
 import com.nextread.readpick.data.model.collection.CollectionBookResponse
+import com.nextread.readpick.util.ImageUtils
 
 /**
  * 컬렉션 상세 화면
@@ -242,12 +244,14 @@ fun BookGridItem(
                     .clip(RoundedCornerShape(8.dp))
                     .background(MaterialTheme.colorScheme.surfaceVariant)
             ) {
-                // TODO: Coil로 실제 이미지 로드
-                Image(
-                    painter = painterResource(id = R.drawable.ic_menu),
+                // 책 표지 이미지 (고화질 이미지 URL로 변환)
+                AsyncImage(
+                    model = ImageUtils.getHighQualityCoverUrl(book.cover),
                     contentDescription = book.title,
                     modifier = Modifier.fillMaxSize(),
-                    contentScale = ContentScale.Crop
+                    contentScale = ContentScale.Crop,
+                    placeholder = painterResource(id = R.drawable.ic_menu),
+                    error = painterResource(id = R.drawable.ic_menu)
                 )
 
                 // 편집 모드일 때 체크박스

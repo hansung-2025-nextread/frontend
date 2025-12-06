@@ -43,6 +43,9 @@ import com.nextread.readpick.presentation.community.profile.UserProfileScreen
 import com.nextread.readpick.presentation.chatbot.sessionlist.ChatbotSessionListScreen
 import com.nextread.readpick.presentation.chatbot.chat.ChatScreen
 
+// 책 상세 Screen import
+import com.nextread.readpick.presentation.book.BookDetailScreen
+
 /**
  * ReadPick 앱의 전체 Navigation Graph
  */
@@ -199,10 +202,19 @@ fun ReadPickNavGraph(
                 onNavigateToCollectionCreate = {
                     navController.navigate(Screen.CollectionCreate.route)
                 },
-                onCommunityClick = {},
+                onCommunityClick = {
+                    navController.navigate(Screen.Community.route) {
+                        popUpTo(Screen.Home.route) { inclusive = false }
+                        launchSingleTop = true
+                    }
+                },
                 // 컬렉션 상세로 이동 (id와 name 모두 전달)
                 onNavigateToCollectionDetail = { collectionId, collectionName ->
                     navController.navigate(Screen.CollectionDetail.createRoute(collectionId, collectionName))
+                },
+                // 책 클릭 시 상세 화면으로 이동
+                onBookClick = { isbn13 ->
+                    navController.navigate(Screen.BookDetail.createRoute(isbn13))
                 }
             )
         }
@@ -285,10 +297,11 @@ fun ReadPickNavGraph(
         // 아직 구현되지 않은 화면을 클릭해도 앱이 죽지 않게 막아줍니다.
         // --------------------------------------------------------
 
-        // 도서 상세 (파라미터 받기 예시)
-        composable(Screen.BookDetail.route) { backStackEntry ->
-            val isbn13 = backStackEntry.arguments?.getString("isbn13") ?: ""
-            PlaceholderScreen(name = "도서 상세 화면\nISBN: $isbn13")
+        // 도서 상세
+        composable(Screen.BookDetail.route) {
+            BookDetailScreen(
+                onNavigateBack = { navController.popBackStack() }
+            )
         }
 
         // 챗봇 세션 목록 화면

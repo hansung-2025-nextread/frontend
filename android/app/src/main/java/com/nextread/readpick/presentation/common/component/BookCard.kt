@@ -12,6 +12,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
+import com.nextread.readpick.util.ImageUtils
 
 /**
  * 공통 책 카드 컴포넌트
@@ -63,9 +64,9 @@ fun BookCard(
         elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
     ) {
         Column {
-            // 책 표지
+            // 책 표지 (고화질 이미지 URL로 변환)
             AsyncImage(
-                model = coverUrl,
+                model = ImageUtils.getHighQualityCoverUrl(coverUrl),
                 contentDescription = title,
                 modifier = Modifier
                     .fillMaxWidth()

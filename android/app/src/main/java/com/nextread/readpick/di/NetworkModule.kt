@@ -6,6 +6,7 @@ import com.nextread.readpick.data.remote.api.BookApi
 import com.nextread.readpick.data.remote.api.ChatbotApi
 import com.nextread.readpick.data.remote.api.CollectionApi
 import com.nextread.readpick.data.remote.api.CommunityApi
+import com.nextread.readpick.data.remote.api.ReviewApi
 import com.nextread.readpick.data.remote.interceptor.AuthInterceptor
 import com.nextread.readpick.data.remote.interceptor.LoggingInterceptorProvider
 import dagger.Module
@@ -196,5 +197,18 @@ object NetworkModule {
     @Singleton
     fun provideCollectionApi(retrofit: Retrofit): CollectionApi {
         return retrofit.create(CollectionApi::class.java)
+    }
+
+    /**
+     * ReviewApi 제공
+     *
+     * 리뷰 관련 API 인터페이스
+     * - 리뷰 조회/작성/수정/삭제
+     * - 리뷰 신고
+     */
+    @Provides
+    @Singleton
+    fun provideReviewApi(retrofit: Retrofit): ReviewApi {
+        return retrofit.create(ReviewApi::class.java)
     }
 }

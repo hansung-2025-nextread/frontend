@@ -47,6 +47,7 @@ enum class CollectionTab(val title: String) {
  * @param onNavigateToSearch 검색 화면으로 이동
  * @param onNavigateToCollectionCreate 새 컬렉션(책장) 만들기 화면으로 이동
  * @param onNavigateToCollectionDetail 컬렉션 상세 화면으로 이동
+ * @param onBookClick 책 클릭 시 상세 화면으로 이동
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -58,7 +59,8 @@ fun CollectionScreen(
     onNavigateToMyPage: () -> Unit,
     onNavigateToSearch: () -> Unit,
     onNavigateToCollectionCreate: () -> Unit,
-    onNavigateToCollectionDetail: (collectionId: Long, collectionName: String) -> Unit
+    onNavigateToCollectionDetail: (collectionId: Long, collectionName: String) -> Unit,
+    onBookClick: (String) -> Unit = {}
 ) {
     // 현재 선택된 탭 상태
     var selectedTab by remember { mutableStateOf(CollectionTab.MY_LIBRARY) }
@@ -100,6 +102,7 @@ fun CollectionScreen(
                         // 탭 1: 내 서재 - 즐겨찾기한 모든 책을 그리드로 표시
                         MyLibraryContent(
                             bookCount = uiState.favoriteBookCount,
+                            books = uiState.savedBooks,
                             onFilterClick = {
                                 // TODO: 필터 기능 구현 (장르별, 읽은 책/읽지 않은 책 등)
                             },
@@ -108,7 +111,8 @@ fun CollectionScreen(
                             },
                             onDeleteBooks = { isbn13List ->
                                 viewModel.deleteFavoriteBooks(isbn13List)
-                            }
+                            },
+                            onBookClick = onBookClick
                         )
                     }
                     CollectionTab.MY_BOOKSHELF -> {

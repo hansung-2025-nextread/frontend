@@ -26,6 +26,7 @@ import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import com.nextread.readpick.R
 import com.nextread.readpick.ui.theme.NextReadTheme
+import com.nextread.readpick.util.ImageUtils
 
 /**
  * 즐겨찾기한 책 DTO
@@ -46,22 +47,23 @@ data class FavoriteBookDto(
  * 필터 및 편집 기능을 제공합니다.
  *
  * @param bookCount 즐겨찾기한 책의 총 개수
+ * @param books 즐겨찾기한 책 목록
  * @param onFilterClick 필터 버튼 클릭 시 호출
  * @param onEditClick 편집 버튼 클릭 시 호출
  * @param onDeleteBooks 선택된 책들을 삭제(즐겨찾기 취소)할 때 호출
+ * @param onBookClick 책 클릭 시 상세 화면으로 이동
  * @param modifier Modifier
  */
 @Composable
 fun MyLibraryContent(
     bookCount: Int,
+    books: List<FavoriteBookDto> = emptyList(),
     onFilterClick: () -> Unit,
     onEditClick: () -> Unit,
     onDeleteBooks: (List<String>) -> Unit = {},
+    onBookClick: (String) -> Unit = {},
     modifier: Modifier = Modifier
 ) {
-    // TODO: ViewModel에서 실제 즐겨찾기 책 목록 가져오기
-    // API 연동 전까지 빈 목록 사용
-    val dummyBooks = emptyList<FavoriteBookDto>()
 
     // 편집 모드 상태
     var isEditMode by remember { mutableStateOf(false) }
@@ -136,14 +138,14 @@ fun MyLibraryContent(
         }
 
         // 즐겨찾기 책 그리드
-        if (dummyBooks.isNotEmpty()) {
+        if (books.isNotEmpty()) {
             LazyVerticalGrid(
-                columns = GridCells.Adaptive(minSize = 100.dp),
+                columns = GridCells.Adaptive(minSize = 120.dp),
                 contentPadding = PaddingValues(top = 8.dp, bottom = 80.dp),
-                verticalArrangement = Arrangement.spacedBy(16.dp),
+                verticalArrangement = Arrangement.spacedBy(20.dp),
                 horizontalArrangement = Arrangement.spacedBy(16.dp)
             ) {
-                items(dummyBooks) { book ->
+                items(books) { book ->
                     FavoriteBookCoverItem(
                         book = book,
                         isEditMode = isEditMode,
@@ -158,7 +160,7 @@ fun MyLibraryContent(
                                 }
                             } else {
                                 // 일반 모드: 책 상세 화면으로 이동
-                                // TODO: 책 상세 화면으로 이동
+                                onBookClick(book.isbn13)
                             }
                         }
                     )
@@ -197,19 +199,18 @@ fun FavoriteBookCoverItem(
 ) {
     Column(
         modifier = Modifier
-            .width(100.dp)
+            .width(120.dp)
             .clickable(onClick = onClick),
         horizontalAlignment = Alignment.Start
     ) {
         Box {
-            // TODO: Coil로 실제 책 표지 이미지 로드
-            // 책 표지 이미지
+            // 책 표지 이미지 (고화질 이미지 URL로 변환)
             AsyncImage(
-                model = book.coverUrl,
+                model = ImageUtils.getHighQualityCoverUrl(book.coverUrl),
                 contentDescription = book.title,
                 modifier = Modifier
-                    .width(100.dp)
-                    .height(150.dp)
+                    .width(120.dp)
+                    .height(180.dp)
                     .clip(RoundedCornerShape(8.dp)),
                 contentScale = ContentScale.Crop,
                 placeholder = painterResource(id = R.drawable.ic_menu),

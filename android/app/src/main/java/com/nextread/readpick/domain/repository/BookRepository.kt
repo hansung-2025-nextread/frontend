@@ -1,6 +1,7 @@
 package com.nextread.readpick.domain.repository
 
 import com.nextread.readpick.data.model.book.BookDto
+import com.nextread.readpick.data.model.book.BookDetailDto
 import com.nextread.readpick.data.model.book.SavedBookDto
 import com.nextread.readpick.data.model.category.CategoryDto
 import com.nextread.readpick.data.model.search.SearchBookDto
@@ -23,12 +24,17 @@ interface BookRepository {
     /**
      * 도서 상세 조회
      */
-    suspend fun getBookDetail(isbn13: String): Result<BookDto>
+    suspend fun getBookDetail(isbn13: String): Result<BookDetailDto>
 
     /**
      * 내 서재에 저장
      */
     suspend fun saveBook(isbn13: String): Result<Unit>
+
+    /**
+     * 내 서재에서 삭제
+     */
+    suspend fun deleteBook(isbn13: String): Result<Unit>
 
     /**
      * 도서 검색 (정렬 및 페이지네이션 지원)
