@@ -13,6 +13,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -51,6 +52,11 @@ fun HomeScreen(
     onMyPageClick: () -> Unit,
     onBookClick: (String) -> Unit // 책 클릭 시 ISBN13 전달
 ) {
+    // 화면이 다시 보일 때마다 데이터 새로고침
+    LaunchedEffect(Unit) {
+        viewModel.loadHomeData()
+    }
+
     // ViewModel의 uiState를 관찰
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val personalizedBooks by viewModel.personalizedBooks.collectAsStateWithLifecycle()
