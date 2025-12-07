@@ -37,7 +37,7 @@ class HomeViewModel @Inject constructor(
     /**
      * 홈 화면 데이터 로드 (베스트셀러 + 개인화 추천)
      */
-    private fun loadHomeData() {
+    fun loadHomeData() {
         _uiState.value = HomeUiState.Loading
 
         viewModelScope.launch {
