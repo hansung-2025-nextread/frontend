@@ -4,6 +4,7 @@ import com.nextread.readpick.data.model.book.BookDto
 import com.nextread.readpick.data.model.book.BookDetailDto
 import com.nextread.readpick.data.model.book.PersonalizedRecommendationResponse
 import com.nextread.readpick.data.model.book.SavedBookPageResponse
+import com.nextread.readpick.data.model.book.UpdateReadingStatusRequest
 import com.nextread.readpick.data.model.category.CategoryDto
 import com.nextread.readpick.data.model.common.ApiResponse
 import com.nextread.readpick.data.model.search.SearchLogDto
@@ -132,4 +133,13 @@ interface BookApi {
      */
     @GET("v1/api/categories")
     suspend fun getAllCategories(): ApiResponse<List<CategoryDto>>
+
+    /**
+     * 독서 상태 업데이트
+     */
+    @PUT("v1/api/books/saved/{isbn13}/status")
+    suspend fun updateReadingStatus(
+        @Path("isbn13") isbn13: String,
+        @Body request: UpdateReadingStatusRequest
+    ): ApiResponse<Unit>
 }

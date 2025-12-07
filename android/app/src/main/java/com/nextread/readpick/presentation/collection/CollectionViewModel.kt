@@ -3,6 +3,8 @@ package com.nextread.readpick.presentation.collection
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.nextread.readpick.data.model.book.SavedBookDto
+import com.nextread.readpick.domain.model.ReadingStatus
 import com.nextread.readpick.domain.repository.CollectionRepository
 import com.nextread.readpick.domain.repository.BookRepository
 import com.nextread.readpick.presentation.collection.components.UserCollection
@@ -35,7 +37,8 @@ class CollectionViewModel @Inject constructor(
      * UI 상태
      *
      * @param favoriteBookCount 즐겨찾기한 책의 개수
-     * @param savedBooks 저장된(즐겨찾기한) 책 목록
+     * @param savedBooks 저장된(즐겨찾기한) 책 목록 (그리드용 - FavoriteBookDto)
+     * @param savedBooksWithStatus 독서 상태 포함된 책 목록 (리스트용 - SavedBookDto)
      * @param userCollections 사용자가 만든 컬렉션(책장) 목록
      * @param isLoading 로딩 중 여부
      * @param error 에러 메시지
@@ -43,6 +46,7 @@ class CollectionViewModel @Inject constructor(
     data class CollectionUiState(
         val favoriteBookCount: Int = 0,
         val savedBooks: List<FavoriteBookDto> = emptyList(),
+        val savedBooksWithStatus: List<SavedBookDto> = emptyList(),
         val userCollections: List<UserCollection> = emptyList(),
         val isLoading: Boolean = false,
         val error: String? = null
@@ -114,7 +118,7 @@ class CollectionViewModel @Inject constructor(
 
             bookRepository.getSavedBooks()
                 .onSuccess { savedBooksList ->
-                    // DTO를 FavoriteBookDto로 변환
+                    // DTO를 FavoriteBookDto로 변환 (그리드용)
                     val savedBooks = savedBooksList.map { dto ->
                         FavoriteBookDto(
                             isbn13 = dto.isbn13,
@@ -127,6 +131,7 @@ class CollectionViewModel @Inject constructor(
                     _uiState.update {
                         it.copy(
                             savedBooks = savedBooks,
+                            savedBooksWithStatus = savedBooksList, // SavedBookDto 그대로 저장
                             favoriteBookCount = savedBooks.size
                         )
                     }
@@ -347,6 +352,45 @@ class CollectionViewModel @Inject constructor(
                 // 실패해도 목록 새로고침
                 loadSavedBooks()
             }
+        }
+    }
+
+    /**
+     * 독서 상태 업데이트
+     *
+     * @param isbn13 책 ISBN
+     * @param newStatus 새로운 독서 상태
+     */
+    fun updateReadingStatus(isbn13: String, newStatus: ReadingStatus) {
+        viewModelScope.launch {
+            Log.d(TAG, "독서 상태 업데이트 시작: isbn13=$isbn13, status=$newStatus")
+
+            bookRepository.updateReadingStatus(isbn13, newStatus)
+                .onSuccess {
+                    Log.d(TAG, "✅ 독서 상태 업데이트 성공")
+                    // 성공 시 로컬 상태 업데이트 (즉시 UI 반영)
+                    _uiState.update { currentState ->
+                        currentState.copy(
+                            savedBooks = currentState.savedBooks.map { book ->
+                                if (book.isbn13 == isbn13) {
+                                    // FavoriteBookDto는 ReadingStatus 필드가 없으므로
+                                    // 단순히 책 목록을 다시 로드하거나, 확장된 DTO 사용 필요
+                                    book
+                                } else {
+                                    book
+                                }
+                            }
+                        )
+                    }
+                    // 전체 목록 다시 로드하여 최신 상태 반영
+                    loadSavedBooks()
+                }
+                .onFailure { exception ->
+                    Log.e(TAG, "❌ 독서 상태 업데이트 실패", exception)
+                    _uiState.update {
+                        it.copy(error = "독서 상태를 변경할 수 없습니다")
+                    }
+                }
         }
     }
 }

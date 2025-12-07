@@ -8,6 +8,7 @@ import com.nextread.readpick.data.model.search.SearchBookDto
 import com.nextread.readpick.data.model.search.SearchLogDto
 import com.nextread.readpick.data.model.search.SearchPageResponse
 import com.nextread.readpick.data.model.search.SortType
+import com.nextread.readpick.domain.model.ReadingStatus
 
 interface BookRepository {
 
@@ -80,4 +81,9 @@ interface BookRepository {
      * 전체 카테고리 목록 조회
      */
     suspend fun getAllCategories(): Result<List<CategoryDto>>
+
+    /**
+     * 독서 상태 업데이트
+     */
+    suspend fun updateReadingStatus(isbn13: String, status: ReadingStatus): Result<Unit>
 }

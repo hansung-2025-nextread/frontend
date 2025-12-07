@@ -99,10 +99,11 @@ fun CollectionScreen(
             Box(modifier = Modifier.fillMaxSize()) {
                 when (selectedTab) {
                     CollectionTab.MY_LIBRARY -> {
-                        // 탭 1: 내 서재 - 즐겨찾기한 모든 책을 그리드로 표시
+                        // 탭 1: 내 서재 - 즐겨찾기한 모든 책을 그리드/리스트로 표시
                         MyLibraryContent(
                             bookCount = uiState.favoriteBookCount,
                             books = uiState.savedBooks,
+                            booksWithStatus = uiState.savedBooksWithStatus,
                             onFilterClick = {
                                 // TODO: 필터 기능 구현 (장르별, 읽은 책/읽지 않은 책 등)
                             },
@@ -112,7 +113,10 @@ fun CollectionScreen(
                             onDeleteBooks = { isbn13List ->
                                 viewModel.deleteFavoriteBooks(isbn13List)
                             },
-                            onBookClick = onBookClick
+                            onBookClick = onBookClick,
+                            onStatusChange = { isbn13, newStatus ->
+                                viewModel.updateReadingStatus(isbn13, newStatus)
+                            }
                         )
                     }
                     CollectionTab.MY_BOOKSHELF -> {

@@ -4,6 +4,7 @@ import android.util.Log
 import com.nextread.readpick.data.model.book.BookDetailDto
 import com.nextread.readpick.data.model.book.BookDto
 import com.nextread.readpick.data.model.book.SavedBookDto
+import com.nextread.readpick.data.model.book.UpdateReadingStatusRequest
 import com.nextread.readpick.data.model.category.CategoryDto
 import com.nextread.readpick.data.model.search.SearchBookDto
 import com.nextread.readpick.data.model.search.SearchLogDto
@@ -12,6 +13,7 @@ import com.nextread.readpick.data.model.search.SearchRequest
 import com.nextread.readpick.data.model.search.SortType
 import com.nextread.readpick.data.model.user.SearchHistorySettingRequest
 import com.nextread.readpick.data.remote.api.BookApi
+import com.nextread.readpick.domain.model.ReadingStatus
 import com.nextread.readpick.domain.repository.BookRepository
 import javax.inject.Inject
 
@@ -263,6 +265,26 @@ class BookRepositoryImpl @Inject constructor(
         }
     }.onFailure { exception ->
         Log.e(TAG, "카테고리 조회 에러", exception)
+    }
+
+    /**
+     * 독서 상태 업데이트
+     */
+    override suspend fun updateReadingStatus(isbn13: String, status: ReadingStatus): Result<Unit> = runCatching {
+        Log.d(TAG, "독서 상태 업데이트 API 호출 - isbn13: $isbn13, status: $status")
+        val response = bookApi.updateReadingStatus(
+            isbn13 = isbn13,
+            request = UpdateReadingStatusRequest(status = status.name)
+        )
+
+        if (response.success) {
+            Log.d(TAG, "독서 상태 업데이트 성공")
+            Unit
+        } else {
+            throw Exception(response.message ?: "독서 상태를 업데이트할 수 없습니다")
+        }
+    }.onFailure { exception ->
+        Log.e(TAG, "독서 상태 업데이트 에러", exception)
     }
 
     companion object {
