@@ -1,8 +1,10 @@
 package com.nextread.readpick.data.remote.api
 
 import com.nextread.readpick.data.model.book.BookDto
+import com.nextread.readpick.data.model.book.BookDetailDto
 import com.nextread.readpick.data.model.book.PersonalizedRecommendationResponse
 import com.nextread.readpick.data.model.book.SavedBookPageResponse
+import com.nextread.readpick.data.model.book.UpdateReadingStatusRequest
 import com.nextread.readpick.data.model.category.CategoryDto
 import com.nextread.readpick.data.model.common.ApiResponse
 import com.nextread.readpick.data.model.search.SearchLogDto
@@ -11,6 +13,7 @@ import com.nextread.readpick.data.model.search.SearchRequest
 import com.nextread.readpick.data.model.search.SearchResponseData
 import com.nextread.readpick.data.model.user.SearchHistorySettingRequest
 import com.nextread.readpick.data.model.user.SearchHistorySettingResponse
+import okhttp3.ResponseBody
 import retrofit2.http.*
 
 interface BookApi {
@@ -42,19 +45,32 @@ interface BookApi {
 
     /**
      * 도서 상세 조회
+     * 참고: 백엔드에서 ApiResponse로 감싸지 않고 BookDetailDto 직접 반환
      */
     @GET("v1/api/books/{isbn13}")
     suspend fun getBookDetail(
         @Path("isbn13") isbn13: String
-    ): ApiResponse<BookDto>
+    ): BookDetailDto
 
     /**
      * 내 서재에 책 저장
+     * 참고: 백엔드에서 단순 문자열 메시지 반환 (JSON 아님)
+     * ResponseBody를 사용하여 JSON 파싱 우회
      */
     @POST("v1/api/books/{isbn13}")
     suspend fun saveBook(
         @Path("isbn13") isbn13: String
-    ): ApiResponse<Unit>
+    ): ResponseBody
+
+    /**
+     * 내 서재에서 책 삭제
+     * 참고: 백엔드에서 단순 문자열 메시지 반환 (JSON 아님)
+     * ResponseBody를 사용하여 JSON 파싱 우회
+     */
+    @DELETE("v1/api/books/{isbn13}")
+    suspend fun deleteBook(
+        @Path("isbn13") isbn13: String
+    ): ResponseBody
 
     /**
      * 🚨 [수정] 도서 검색 API
@@ -117,4 +133,13 @@ interface BookApi {
      */
     @GET("v1/api/categories")
     suspend fun getAllCategories(): ApiResponse<List<CategoryDto>>
+
+    /**
+     * 독서 상태 업데이트
+     */
+    @PUT("v1/api/books/saved/{isbn13}/status")
+    suspend fun updateReadingStatus(
+        @Path("isbn13") isbn13: String,
+        @Body request: UpdateReadingStatusRequest
+    ): ApiResponse<Unit>
 }

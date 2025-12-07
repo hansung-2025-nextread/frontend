@@ -3,8 +3,10 @@ package com.nextread.readpick.presentation.collection
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.nextread.readpick.data.model.book.SavedBookDto
+import com.nextread.readpick.domain.model.ReadingStatus
 import com.nextread.readpick.domain.repository.CollectionRepository
-import com.nextread.readpick.data.remote.api.BookApi
+import com.nextread.readpick.domain.repository.BookRepository
 import com.nextread.readpick.presentation.collection.components.UserCollection
 import com.nextread.readpick.presentation.collection.components.FavoriteBookDto
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -24,7 +26,7 @@ import javax.inject.Inject
 @HiltViewModel
 class CollectionViewModel @Inject constructor(
     private val collectionRepository: CollectionRepository,
-    private val bookApi: BookApi
+    private val bookRepository: BookRepository
 ) : ViewModel() {
 
     companion object {
@@ -35,7 +37,8 @@ class CollectionViewModel @Inject constructor(
      * UI 상태
      *
      * @param favoriteBookCount 즐겨찾기한 책의 개수
-     * @param savedBooks 저장된(즐겨찾기한) 책 목록
+     * @param savedBooks 저장된(즐겨찾기한) 책 목록 (그리드용 - FavoriteBookDto)
+     * @param savedBooksWithStatus 독서 상태 포함된 책 목록 (리스트용 - SavedBookDto)
      * @param userCollections 사용자가 만든 컬렉션(책장) 목록
      * @param isLoading 로딩 중 여부
      * @param error 에러 메시지
@@ -43,6 +46,7 @@ class CollectionViewModel @Inject constructor(
     data class CollectionUiState(
         val favoriteBookCount: Int = 0,
         val savedBooks: List<FavoriteBookDto> = emptyList(),
+        val savedBooksWithStatus: List<SavedBookDto> = emptyList(),
         val userCollections: List<UserCollection> = emptyList(),
         val isLoading: Boolean = false,
         val error: String? = null
@@ -112,31 +116,31 @@ class CollectionViewModel @Inject constructor(
         viewModelScope.launch {
             Log.d(TAG, "저장된 책 목록 로딩 시작...")
 
-            try {
-                // API 호출
-                val savedBooksResponse = bookApi.getSavedBooks(page = 0, size = 100)
+            bookRepository.getSavedBooks()
+                .onSuccess { savedBooksList ->
+                    // DTO를 FavoriteBookDto로 변환 (그리드용)
+                    val savedBooks = savedBooksList.map { dto ->
+                        FavoriteBookDto(
+                            isbn13 = dto.isbn13,
+                            title = dto.title,
+                            author = dto.author,
+                            coverUrl = dto.cover
+                        )
+                    }
 
-                // DTO를 FavoriteBookDto로 변환
-                val savedBooks = savedBooksResponse.content.map { dto ->
-                    FavoriteBookDto(
-                        isbn13 = dto.isbn13,
-                        title = dto.title,
-                        author = dto.author,
-                        coverUrl = dto.cover
-                    )
+                    _uiState.update {
+                        it.copy(
+                            savedBooks = savedBooks,
+                            savedBooksWithStatus = savedBooksList, // SavedBookDto 그대로 저장
+                            favoriteBookCount = savedBooks.size
+                        )
+                    }
+                    Log.d(TAG, "✅ 저장된 책 목록 로드 성공: ${savedBooks.size}권")
                 }
-
-                _uiState.update {
-                    it.copy(
-                        savedBooks = savedBooks,
-                        favoriteBookCount = savedBooks.size
-                    )
+                .onFailure { exception ->
+                    Log.e(TAG, "❌ 저장된 책 목록 로드 실패", exception)
+                    // 에러가 발생해도 다른 기능은 동작하도록 에러 상태는 업데이트하지 않음
                 }
-                Log.d(TAG, "✅ 저장된 책 목록 로드 성공: ${savedBooks.size}권")
-            } catch (e: Exception) {
-                Log.e(TAG, "❌ 저장된 책 목록 로드 실패", e)
-                // 에러가 발생해도 다른 기능은 동작하도록 에러 상태는 업데이트하지 않음
-            }
         }
     }
 
@@ -311,35 +315,82 @@ class CollectionViewModel @Inject constructor(
      * 즐겨찾기 책 삭제
      *
      * @param isbn13List 삭제할 책의 ISBN 목록
-     *
-     * TODO: API 연동 시 Repository를 통해 서버에서 즐겨찾기 해제
      */
     fun deleteFavoriteBooks(isbn13List: List<String>) {
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true, error = null) }
             Log.d(TAG, "즐겨찾기 삭제 시작: ${isbn13List.size}권")
 
-            try {
-                // TODO: API 호출
-                // favoriteRepository.removeFavorites(isbn13List)
+            // 각 책을 순차적으로 삭제
+            var successCount = 0
+            var failCount = 0
 
-                // 임시: favoriteBookCount만 업데이트
-                _uiState.update {
-                    it.copy(
-                        favoriteBookCount = maxOf(0, it.favoriteBookCount - isbn13List.size),
-                        isLoading = false
-                    )
-                }
-                Log.d(TAG, "✅ 즐겨찾기 삭제 성공")
-            } catch (e: Exception) {
-                Log.e(TAG, "❌ 즐겨찾기 삭제 실패", e)
+            isbn13List.forEach { isbn13 ->
+                bookRepository.deleteBook(isbn13)
+                    .onSuccess {
+                        successCount++
+                        Log.d(TAG, "책 삭제 성공: $isbn13")
+                    }
+                    .onFailure { exception ->
+                        failCount++
+                        Log.e(TAG, "책 삭제 실패: $isbn13", exception)
+                    }
+            }
+
+            if (failCount == 0) {
+                Log.d(TAG, "✅ 모든 책 삭제 성공: ${successCount}권")
+                // 삭제 성공 후 목록 다시 로드
+                loadSavedBooks()
+            } else {
+                Log.e(TAG, "❌ 일부 책 삭제 실패: 성공 ${successCount}권, 실패 ${failCount}권")
                 _uiState.update {
                     it.copy(
                         isLoading = false,
-                        error = e.message ?: "즐겨찾기를 해제할 수 없습니다"
+                        error = "일부 책을 삭제할 수 없습니다 (${failCount}/${isbn13List.size})"
                     )
                 }
+                // 실패해도 목록 새로고침
+                loadSavedBooks()
             }
+        }
+    }
+
+    /**
+     * 독서 상태 업데이트
+     *
+     * @param isbn13 책 ISBN
+     * @param newStatus 새로운 독서 상태
+     */
+    fun updateReadingStatus(isbn13: String, newStatus: ReadingStatus) {
+        viewModelScope.launch {
+            Log.d(TAG, "독서 상태 업데이트 시작: isbn13=$isbn13, status=$newStatus")
+
+            bookRepository.updateReadingStatus(isbn13, newStatus)
+                .onSuccess {
+                    Log.d(TAG, "✅ 독서 상태 업데이트 성공")
+                    // 성공 시 로컬 상태 업데이트 (즉시 UI 반영)
+                    _uiState.update { currentState ->
+                        currentState.copy(
+                            savedBooks = currentState.savedBooks.map { book ->
+                                if (book.isbn13 == isbn13) {
+                                    // FavoriteBookDto는 ReadingStatus 필드가 없으므로
+                                    // 단순히 책 목록을 다시 로드하거나, 확장된 DTO 사용 필요
+                                    book
+                                } else {
+                                    book
+                                }
+                            }
+                        )
+                    }
+                    // 전체 목록 다시 로드하여 최신 상태 반영
+                    loadSavedBooks()
+                }
+                .onFailure { exception ->
+                    Log.e(TAG, "❌ 독서 상태 업데이트 실패", exception)
+                    _uiState.update {
+                        it.copy(error = "독서 상태를 변경할 수 없습니다")
+                    }
+                }
         }
     }
 }
