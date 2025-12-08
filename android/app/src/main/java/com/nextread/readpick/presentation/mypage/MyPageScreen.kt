@@ -55,10 +55,12 @@ fun MyPageScreen(
     // ViewModel에서 로드한 데이터 사용 (로컬 또는 API)
     val userName = uiState.userInfo?.name ?: "이름"
     val userEmail = uiState.userInfo?.email ?: "이메일"
+    val profileImageUrl = uiState.userInfo?.profileImageUrl
 
     MyPageContent(
         userName = userName,
         userEmail = userEmail,
+        profileImageUrl = profileImageUrl,
         onLogoutClick = viewModel::onLogoutClick,
         onReviewsClick = onNavigateToReviews,
         onNavigateToHome = onNavigateToHome,
@@ -77,6 +79,7 @@ fun MyPageScreen(
 private fun MyPageContent(
     userName: String,
     userEmail: String,
+    profileImageUrl: String?,
     onLogoutClick: () -> Unit,
     onReviewsClick: () -> Unit,
     onNavigateToHome: () -> Unit,
@@ -107,6 +110,7 @@ private fun MyPageContent(
             MyPageHeader(
                 name = userName,
                 email = userEmail,
+                profileImageUrl = profileImageUrl,
                 modifier = Modifier.padding(vertical = 16.dp)
             )
 
@@ -137,14 +141,6 @@ private fun MyPageContent(
 fun MyPageTopBar() {
     TopAppBar(
         title = { Text("Next Read") },
-        navigationIcon = {
-            IconButton(onClick = { /* 메뉴/Drawer 액션 */ }) {
-                Icon(
-                    imageVector = Icons.Default.Menu,
-                    contentDescription = "Menu"
-                )
-            }
-        },
         colors = TopAppBarDefaults.topAppBarColors(
             containerColor = MaterialTheme.colorScheme.background,
             titleContentColor = MaterialTheme.colorScheme.onBackground
@@ -163,6 +159,7 @@ fun MyPageScreenPreview() {
         MyPageContent(
             userName = "이름",
             userEmail = "이메일",
+            profileImageUrl = null,
             onLogoutClick = {},
             onReviewsClick = {},
             onNavigateToHome = {},
