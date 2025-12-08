@@ -75,4 +75,13 @@ interface ReviewApi {
         @Path("reviewId") reviewId: Long,
         @Body request: ReportReviewRequest
     ): ResponseBody
+
+    /**
+     * 내가 작성한 리뷰 목록 조회
+     */
+    @GET("v1/api/users/me/reviews")
+    suspend fun getUserReviews(
+        @Query("page") page: Int,
+        @Query("size") size: Int
+    ): ReviewPageResponse
 }

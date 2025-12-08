@@ -55,4 +55,9 @@ interface ReviewRepository {
         reviewId: Long,
         reason: String
     ): Result<Unit>
+
+    /**
+     * 내가 작성한 리뷰 목록 조회
+     */
+    suspend fun getUserReviews(page: Int, size: Int): Result<ReviewPageResponse>
 }
