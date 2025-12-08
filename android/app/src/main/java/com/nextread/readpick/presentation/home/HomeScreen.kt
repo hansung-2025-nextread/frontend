@@ -376,7 +376,7 @@ fun HomeTopBar(
                 modifier = Modifier.size(40.dp)
             ) {
                 Icon(
-                    painter = painterResource(id = R.drawable.ic_menu),
+                    painter = painterResource(id = R.drawable.ic_category),
                     contentDescription = "카테고리 메뉴",
                     tint = MaterialTheme.colorScheme.onSurface,
                     modifier = Modifier.size(24.dp)

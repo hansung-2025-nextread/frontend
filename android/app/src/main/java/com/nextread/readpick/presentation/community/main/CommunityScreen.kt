@@ -32,6 +32,7 @@ import com.nextread.readpick.data.model.community.CommunityCategoryDto
 import com.nextread.readpick.data.model.community.CommunityPostDto
 import com.nextread.readpick.presentation.common.component.ErrorMessage
 import com.nextread.readpick.presentation.common.component.LoadingIndicator
+import com.nextread.readpick.presentation.common.component.ReadPickBottomNavigation
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -40,6 +41,9 @@ fun CommunityScreen(
     onWriteClick: () -> Unit,
     onUserClick: (Long) -> Unit,
     onBookClick: (String) -> Unit,
+    onHomeClick: () -> Unit,
+    onMyLibraryClick: () -> Unit,
+    onMyPageClick: () -> Unit,
     viewModel: CommunityViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -56,6 +60,15 @@ fun CommunityScreen(
         topBar = {
             TopAppBar(
                 title = { Text("커뮤니티") }
+            )
+        },
+        bottomBar = {
+            ReadPickBottomNavigation(
+                currentRoute = "community",
+                onHomeClick = onHomeClick,
+                onMyLibraryClick = onMyLibraryClick,
+                onCommunityClick = { /* 현재 화면 */ },
+                onMyPageClick = onMyPageClick
             )
         },
         floatingActionButton = {

@@ -370,6 +370,24 @@ fun ReadPickNavGraph(
                 },
                 onBookClick = { isbn13 ->
                     navController.navigate(Screen.BookDetail.createRoute(isbn13))
+                },
+                onHomeClick = {
+                    navController.navigate(Screen.Home.route) {
+                        popUpTo(Screen.Home.route) { inclusive = false }
+                        launchSingleTop = true
+                    }
+                },
+                onMyLibraryClick = {
+                    navController.navigate(Screen.MyLibrary.route) {
+                        popUpTo(Screen.Home.route) { inclusive = false }
+                        launchSingleTop = true
+                    }
+                },
+                onMyPageClick = {
+                    navController.navigate(Screen.MyPage.route) {
+                        popUpTo(Screen.Home.route) { inclusive = false }
+                        launchSingleTop = true
+                    }
                 }
             )
         }
