@@ -24,6 +24,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.compose.LocalLifecycleOwner
+import androidx.lifecycle.repeatOnLifecycle
 import coil.compose.AsyncImage
 import com.nextread.readpick.R
 import com.nextread.readpick.data.model.collection.CollectionBookResponse
@@ -56,6 +59,14 @@ fun CollectionDetailScreen(
     // 컬렉션 이름 설정
     LaunchedEffect(collectionName) {
         viewModel.setCollectionName(collectionName)
+    }
+
+    // 화면이 다시 표시될 때 데이터 새로고침
+    val lifecycleOwner = LocalLifecycleOwner.current
+    LaunchedEffect(lifecycleOwner) {
+        lifecycleOwner.lifecycle.repeatOnLifecycle(Lifecycle.State.RESUMED) {
+            viewModel.refreshData()
+        }
     }
 
     Scaffold(

@@ -65,6 +65,16 @@ class CollectionViewModel @Inject constructor(
     }
 
     /**
+     * 데이터 새로고침
+     *
+     * 화면이 다시 표시될 때 호출되어 컬렉션과 저장된 책 목록을 다시 로드합니다.
+     */
+    fun refreshData() {
+        loadCollections()
+        loadSavedBooks()
+    }
+
+    /**
      * 컬렉션 목록 로드
      *
      * Repository에서 실제 데이터를 가져옵니다.
@@ -297,8 +307,10 @@ class CollectionViewModel @Inject constructor(
                     collectionRepository.addBookToCollection(collectionId, isbn13)
                 }
 
-                _uiState.update { it.copy(isLoading = false) }
                 Log.d(TAG, "✅ 컬렉션에 책 추가 성공: ${isbn13List.size}권")
+
+                // 컬렉션 목록 다시 로드하여 업데이트된 책 개수 반영
+                loadCollections()
             } catch (e: Exception) {
                 Log.e(TAG, "❌ 컬렉션에 책 추가 실패", e)
                 _uiState.update {

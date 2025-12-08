@@ -65,6 +65,15 @@ class CollectionDetailViewModel @Inject constructor(
     }
 
     /**
+     * 데이터 새로고침
+     *
+     * 화면이 다시 표시될 때 호출되어 컬렉션 내 책 목록을 다시 로드합니다.
+     */
+    fun refreshData() {
+        loadCollectionBooks()
+    }
+
+    /**
      * 컬렉션 내 책 목록 로드
      */
     private fun loadCollectionBooks() {

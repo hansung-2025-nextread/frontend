@@ -199,43 +199,43 @@ private fun SelectableBookItem(
             .fillMaxWidth()
             .clip(RoundedCornerShape(8.dp))
             .clickable { onSelect(book.isbn13, !sBook.isSelected) }
-            .padding(vertical = 8.dp),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.SpaceBetween
+            .padding(vertical = 8.dp, horizontal = 4.dp),
+        verticalAlignment = Alignment.CenterVertically
     ) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            // 책 표지
-            coil.compose.AsyncImage(
-                model = book.coverUrl.ifEmpty { null },
-                contentDescription = book.title,
-                modifier = Modifier
-                    .size(40.dp, 60.dp)
-                    .clip(RoundedCornerShape(4.dp)),
-                contentScale = ContentScale.Crop,
-                placeholder = painterResource(id = R.drawable.ic_menu),
-                error = painterResource(id = R.drawable.ic_menu)
+        // 책 표지
+        coil.compose.AsyncImage(
+            model = book.coverUrl.ifEmpty { null },
+            contentDescription = book.title,
+            modifier = Modifier
+                .size(40.dp, 60.dp)
+                .clip(RoundedCornerShape(4.dp)),
+            contentScale = ContentScale.Crop,
+            placeholder = painterResource(id = R.drawable.ic_menu),
+            error = painterResource(id = R.drawable.ic_menu)
+        )
+
+        Spacer(modifier = Modifier.width(16.dp))
+
+        // 책 정보
+        Column(modifier = Modifier.weight(1f)) {
+            Text(
+                text = book.title,
+                style = MaterialTheme.typography.bodyLarge,
+                fontWeight = FontWeight.SemiBold,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
             )
-
-            Spacer(modifier = Modifier.width(16.dp))
-
-            Column(modifier = Modifier.weight(1f)) {
-                Text(
-                    text = book.title,
-                    style = MaterialTheme.typography.bodyLarge,
-                    fontWeight = FontWeight.SemiBold,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
-                )
-                Spacer(modifier = Modifier.height(4.dp))
-                Text(
-                    text = book.author,
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
-                )
-            }
+            Spacer(modifier = Modifier.height(4.dp))
+            Text(
+                text = book.author,
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
+            )
         }
+
+        Spacer(modifier = Modifier.width(8.dp))
 
         // 체크박스
         Checkbox(

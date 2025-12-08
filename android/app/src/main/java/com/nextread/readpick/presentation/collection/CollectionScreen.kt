@@ -14,6 +14,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.compose.LocalLifecycleOwner
+import androidx.lifecycle.repeatOnLifecycle
 import com.nextread.readpick.presentation.collection.components.MyLibraryContent
 import com.nextread.readpick.presentation.collection.components.MyCollectionContent
 import com.nextread.readpick.presentation.common.component.ReadPickBottomNavigation
@@ -67,6 +70,14 @@ fun CollectionScreen(
 
     // ViewModel 상태 관찰
     val uiState by viewModel.uiState.collectAsState()
+
+    // 화면이 다시 표시될 때 데이터 새로고침
+    val lifecycleOwner = LocalLifecycleOwner.current
+    LaunchedEffect(lifecycleOwner) {
+        lifecycleOwner.lifecycle.repeatOnLifecycle(Lifecycle.State.RESUMED) {
+            viewModel.refreshData()
+        }
+    }
 
     Scaffold(
         topBar = {
