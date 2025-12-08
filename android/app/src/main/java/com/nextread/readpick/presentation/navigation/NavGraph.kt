@@ -21,6 +21,7 @@ import com.nextread.readpick.presentation.onboarding.OnboardingScreen
 // 🚨 [추가] SearchScreen import
 import com.nextread.readpick.presentation.search.SearchScreen
 import com.nextread.readpick.presentation.mypage.MyPageScreen
+import com.nextread.readpick.presentation.mypage.MyReviewsScreen
 
 // 카테고리 선택 Screen import
 import com.nextread.readpick.presentation.category.CategorySelectScreen
@@ -267,7 +268,7 @@ fun ReadPickNavGraph(
                 },
                 // 메뉴: 내가 작성한 리뷰 보기 화면으로 이동
                 onNavigateToReviews = {
-                    navController.navigate(Screen.Review.route)
+                    navController.navigate(Screen.MyReviews.route)
                 },
                 // BottomNav: 홈 화면으로 이동
                 onNavigateToHome = {
@@ -289,6 +290,12 @@ fun ReadPickNavGraph(
                         launchSingleTop = true // 현재 화면이므로 싱글 탑으로 중복 쌓임 방지
                     }
                 }
+            )
+        }
+        
+        composable(Screen.MyReviews.route) {
+            MyReviewsScreen(
+                onBackClick = { navController.popBackStack() }
             )
         }
 

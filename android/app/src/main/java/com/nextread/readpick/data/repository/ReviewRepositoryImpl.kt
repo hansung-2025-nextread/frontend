@@ -90,6 +90,15 @@ class ReviewRepositoryImpl @Inject constructor(
         Log.e(TAG, "리뷰 신고 에러: reviewId=$reviewId", exception)
     }
 
+    override suspend fun getUserReviews(page: Int, size: Int): Result<ReviewPageResponse> = runCatching {
+        Log.d(TAG, "내가 작성한 리뷰 목록 API 호출")
+        val reviews = reviewApi.getUserReviews(page, size)
+        Log.d(TAG, "내가 작성한 리뷰 목록 조회 성공: ${reviews.content.size}개")
+        reviews
+    }.onFailure { exception ->
+        Log.e(TAG, "내가 작성한 리뷰 목록 조회 에러", exception)
+    }
+
     companion object {
         private const val TAG = "ReviewRepository"
     }

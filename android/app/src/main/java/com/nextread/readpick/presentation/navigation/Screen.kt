@@ -58,6 +58,7 @@ sealed class Screen(val route: String) {
 
     data object Review : Screen("review")
     data object MyPage : Screen("mypage")
+    data object MyReviews : Screen("myreviews")
 
     // 🚨 [추가] 내 서재 메인 화면
     data object MyLibrary : Screen("mylibrary")
